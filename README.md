@@ -2,8 +2,8 @@ The Ret_Calc_Share.py program is my attempt to model a Roth conversion calculato
 
 The program expects the user to update the following inputs per their personal scenario
 
-  **#Current age and expected remaining life span****
-  years = 55  # 100-year lifespan, retiree is currently 45 years old
+  # Current age and expected remaining life span
+  years = 55  
   ages = np.arange(45, 45 + years)
   
   # Financial assumptions
