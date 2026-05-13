@@ -1,0 +1,1198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Roth Conversion Planner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy:      #1F3864;
+  --blue:      #2E75B6;
+  --blue-lt:   #D6E4F5;
+  --green:     #1F6438;
+  --green-lt:  #EAF4EA;
+  --amber:     #9C5700;
+  --amber-lt:  #FFEB9C;
+  --red:       #9C0006;
+  --red-lt:    #FFC7CE;
+  --maroon:    #883300;
+  --strip:     #F5F9FF;
+  --gray:      #F0F2F5;
+  --border:    #D0D8E4;
+  --text:      #1a1a2e;
+  --muted:     #6B7280;
+  --sidebar-w: 320px;
+  --font-mono: 'DM Mono', monospace;
+  --font-serif:'Libre Baskerville', Georgia, serif;
+  --font-sans: 'DM Sans', system-ui, sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-sans);background:#EEF2F8;color:var(--text);display:flex;height:100vh;overflow:hidden}
+
+/* ── SIDEBAR ─────────────────────────────────────────── */
+#sidebar{
+  width:var(--sidebar-w);min-width:var(--sidebar-w);
+  background:#fff;border-right:1px solid var(--border);
+  display:flex;flex-direction:column;overflow:hidden;
+  box-shadow:2px 0 12px rgba(0,0,0,.07);z-index:10;
+}
+#sidebar-header{
+  background:var(--navy);padding:16px 18px 14px;
+  font-family:var(--font-serif);color:#fff;flex-shrink:0;
+}
+#sidebar-header h1{font-size:15px;font-weight:700;line-height:1.3;letter-spacing:.3px}
+#sidebar-header p{font-size:10px;color:#aac4e8;margin-top:3px;font-family:var(--font-sans)}
+#sidebar-scroll{overflow-y:auto;flex:1;padding:0 0 20px}
+#sidebar-scroll::-webkit-scrollbar{width:4px}
+#sidebar-scroll::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
+
+.s-sec{
+  background:var(--navy);color:#fff;font-size:10px;font-weight:600;
+  letter-spacing:.8px;text-transform:uppercase;padding:7px 14px;
+  margin-top:8px;font-family:var(--font-mono);
+}
+.s-row{display:flex;align-items:center;padding:5px 14px;gap:8px;border-bottom:1px solid #F0F4FA}
+.s-row:hover{background:#FAFBFF}
+.s-label{flex:1;font-size:11px;color:var(--text);line-height:1.3}
+.s-input{
+  width:100px;text-align:right;border:1px solid var(--border);border-radius:4px;
+  padding:3px 6px;font-size:11px;font-family:var(--font-mono);
+  background:#FFFDE7;color:#1a1a6e;font-weight:600;
+  outline:none;transition:border-color .15s,box-shadow .15s;
+}
+.s-input:focus{border-color:var(--blue);box-shadow:0 0 0 2px rgba(46,117,182,.18)}
+.s-input.pct{width:72px}
+select.s-input{background:#FFFDE7;cursor:pointer}
+.calc-val{
+  width:100px;text-align:right;font-size:11px;font-family:var(--font-mono);
+  color:var(--green);font-weight:600;padding:3px 6px;background:#F0FAF4;
+  border:1px solid #C6E8D3;border-radius:4px;
+}
+
+/* ── MAIN AREA ───────────────────────────────────────── */
+#main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+#tabs{
+  display:flex;background:#fff;border-bottom:2px solid var(--border);
+  padding:0 20px;gap:0;flex-shrink:0;
+}
+.tab{
+  padding:12px 20px;font-size:12px;font-weight:600;font-family:var(--font-mono);
+  letter-spacing:.3px;cursor:pointer;border-bottom:3px solid transparent;
+  color:var(--muted);margin-bottom:-2px;white-space:nowrap;
+  transition:color .15s,border-color .15s;
+}
+.tab:hover{color:var(--navy)}
+.tab.active{color:var(--navy);border-bottom-color:var(--blue)}
+
+#content{flex:1;overflow:auto;padding:20px}
+#content::-webkit-scrollbar{width:6px;height:6px}
+#content::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
+
+/* ── TABLES ──────────────────────────────────────────── */
+.tbl-wrap{overflow:auto;border-radius:6px;border:1px solid var(--border);margin-top:12px;box-shadow:0 1px 6px rgba(0,0,0,.06)}
+table{border-collapse:collapse;font-size:11px;font-family:var(--font-mono);width:100%}
+thead tr th{
+  background:var(--navy);color:#fff;padding:6px 8px;
+  white-space:nowrap;position:sticky;top:0;z-index:5;font-weight:500;
+  font-size:10px;letter-spacing:.3px;text-align:right;
+}
+thead tr:first-child th{background:var(--blue);font-size:10px;font-weight:700;letter-spacing:.5px;text-align:center}
+tbody tr{transition:background .1s}
+tbody tr:hover td{background:rgba(46,117,182,.06) !important}
+td{padding:4px 8px;text-align:right;white-space:nowrap;border-bottom:1px solid rgba(208,216,228,.4)}
+td.yr{text-align:center;font-weight:600;color:var(--navy)}
+td.age{text-align:center;color:var(--muted)}
+td.big{font-weight:700;color:var(--navy)}
+td.tax{color:var(--maroon)}
+td.conv{color:var(--navy);font-weight:700}
+td.roth-bal{color:var(--green)}
+td.neg{color:var(--red)}
+tr.strip{background:var(--strip)}
+tr.rmd-yr td{background:#FCE4D6 !important}
+tr.surv td{background:var(--green-lt) !important}
+tr.totals td{background:var(--blue) !important;color:#fff !important;font-weight:700}
+
+/* ── SUMMARY ─────────────────────────────────────────── */
+.sum-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;margin-top:16px}
+.sum-card{background:#fff;border-radius:8px;padding:18px 20px;border:1px solid var(--border);box-shadow:0 1px 4px rgba(0,0,0,.05)}
+.sum-card h3{font-size:10px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);font-family:var(--font-mono);margin-bottom:10px}
+.sum-row{display:flex;justify-content:space-between;align-items:baseline;padding:4px 0;border-bottom:1px solid #F0F4FA;font-size:12px}
+.sum-row .lbl{color:var(--text);flex:1}
+.sum-row .val{font-family:var(--font-mono);font-weight:600;color:var(--navy);font-size:11px}
+.sum-row .val.green{color:var(--green)}
+.sum-row .val.red{color:var(--red)}
+.strat-table{width:100%;margin-top:12px;font-size:11px;font-family:var(--font-mono);border-collapse:collapse}
+.strat-table th{background:var(--navy);color:#fff;padding:6px 10px;text-align:right;font-weight:500;font-size:10px}
+.strat-table th:first-child{text-align:left}
+.strat-table td{padding:5px 10px;border-bottom:1px solid var(--border);text-align:right}
+.strat-table td:first-child{text-align:left;color:var(--text)}
+.strat-table tr.strip td{background:var(--strip)}
+.best-row td{background:#E8F5E9 !important;font-weight:700;color:var(--green) !important}
+.best-row td:first-child{color:var(--green) !important}
+.badge{display:inline-block;padding:1px 6px;border-radius:10px;font-size:9px;font-weight:700;font-family:var(--font-mono)}
+.badge-green{background:#C6EFCE;color:#375623}
+.badge-amber{background:#FFEB9C;color:#9C5700}
+.badge-red{background:#FFC7CE;color:#9C0006}
+
+/* ── MONTE CARLO ─────────────────────────────────────── */
+#mc-container{display:flex;flex-direction:column;gap:20px}
+.mc-stat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
+.mc-stat{background:#fff;border-radius:8px;padding:16px;border:1px solid var(--border)}
+.mc-stat .label{font-size:10px;font-weight:600;letter-spacing:.6px;text-transform:uppercase;color:var(--muted);font-family:var(--font-mono)}
+.mc-stat .value{font-size:22px;font-weight:700;font-family:var(--font-serif);margin:6px 0 2px}
+.mc-stat .note{font-size:10px;color:var(--muted)}
+.mc-stat.green{border-color:#A8D5B5;background:#F0FAF4}
+.mc-stat.green .value{color:var(--green)}
+.mc-stat.amber{border-color:#F0CF88;background:#FFFBF0}
+.mc-stat.amber .value{color:var(--amber)}
+.mc-stat.red{border-color:#F5A0A8;background:#FFF5F5}
+.mc-stat.red .value{color:var(--red)}
+
+#mc-canvas-wrap{background:#fff;border-radius:8px;border:1px solid var(--border);padding:20px;box-shadow:0 1px 4px rgba(0,0,0,.05)}
+#mc-canvas-wrap h3{font-size:10px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);font-family:var(--font-mono);margin-bottom:14px}
+canvas#mc-chart{width:100%;height:300px;display:block}
+
+.mc-dist-wrap{background:#fff;border-radius:8px;border:1px solid var(--border);padding:20px}
+.mc-dist-wrap h3{font-size:10px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);font-family:var(--font-mono);margin-bottom:12px}
+.dist-row{display:flex;align-items:center;gap:10px;padding:4px 0;font-size:11px;font-family:var(--font-mono)}
+.dist-row .pct-lbl{width:100px;color:var(--muted)}
+.dist-row .bar-wrap{flex:1;background:#F0F4FA;border-radius:3px;height:16px;overflow:hidden}
+.dist-row .bar{height:100%;border-radius:3px;transition:width .6s ease}
+.dist-row .amt{width:80px;text-align:right;font-weight:600}
+
+#mc-spinner{display:flex;align-items:center;justify-content:center;height:200px;flex-direction:column;gap:12px;color:var(--muted);font-family:var(--font-mono);font-size:11px}
+.spinner{width:28px;height:28px;border:3px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+#mc-progress{width:200px;height:4px;background:var(--border);border-radius:2px;overflow:hidden}
+#mc-progress-bar{height:100%;background:var(--blue);border-radius:2px;transition:width .1s linear;width:0}
+
+.page-title{font-family:var(--font-serif);font-size:18px;font-weight:700;color:var(--navy);margin-bottom:4px}
+.page-sub{font-size:11px;color:var(--muted);font-family:var(--font-mono);margin-bottom:16px}
+
+.run-btn{
+  background:var(--blue);color:#fff;border:none;border-radius:5px;
+  padding:8px 18px;font-size:11px;font-weight:600;font-family:var(--font-mono);
+  cursor:pointer;letter-spacing:.4px;transition:background .15s;
+}
+.run-btn:hover{background:var(--navy)}
+.run-btn:disabled{background:var(--border);cursor:not-allowed}
+
+.hist-table-wrap{background:#fff;border-radius:8px;border:1px solid var(--border);padding:16px}
+.hist-table-wrap h3{font-size:10px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);font-family:var(--font-mono);margin-bottom:10px}
+.hist-cols{display:flex;gap:24px;flex-wrap:wrap}
+.hist-col table{font-size:10px;font-family:var(--font-mono);border-collapse:collapse}
+.hist-col td{padding:1px 6px;text-align:right}
+.hist-col td:first-child{color:var(--muted);text-align:left}
+.hist-col td.pos{color:#375623}
+.hist-col td.neg{color:var(--red)}
+
+.note-box{background:#FFFBF0;border:1px solid #F0CF88;border-radius:6px;padding:12px 14px;font-size:11px;color:#5a4000;line-height:1.6;margin-top:12px}
+</style>
+</head>
+<body>
+
+<!-- ── SIDEBAR ──────────────────────────────────────── -->
+<div id="sidebar">
+  <div id="sidebar-header">
+    <h1>Roth Conversion Planner</h1>
+    <p>Change any input — all tabs update instantly</p>
+  </div>
+  <div id="sidebar-scroll">
+
+    <div class="s-sec">Current Ages</div>
+    <div class="s-row"><span class="s-label">Older spouse age</span><input class="s-input" id="cur_age1" type="number" value="46"></div>
+    <div class="s-row"><span class="s-label">Younger spouse age</span><input class="s-input" id="cur_age2" type="number" value="43"></div>
+
+    <div class="s-sec">Retirement Plan</div>
+    <div class="s-row"><span class="s-label">Older spouse ret. age</span><input class="s-input" id="ret_age1" type="number" value="49"></div>
+    <div class="s-row"><span class="s-label">Younger spouse ret. age</span><input class="s-input" id="ret_age2" type="number" value="46"></div>
+    <div class="s-row"><span class="s-label">Projection start year</span><span class="calc-val" id="ret_year_disp">—</span></div>
+
+    <div class="s-sec">Balances at Retirement</div>
+    <div class="s-row"><span class="s-label">Traditional 401k / IRA</span><input class="s-input" id="trad" type="number" value="3500000"></div>
+    <div class="s-row"><span class="s-label">Taxable brokerage</span><input class="s-input" id="brok" type="number" value="12000000"></div>
+    <div class="s-row"><span class="s-label">Roth IRA</span><input class="s-input" id="roth" type="number" value="200000"></div>
+
+    <div class="s-sec">Life Expectancy</div>
+    <div class="s-row"><span class="s-label">Older spouse</span><input class="s-input" id="life1" type="number" value="80"></div>
+    <div class="s-row"><span class="s-label">Younger spouse</span><input class="s-input" id="life2" type="number" value="90"></div>
+
+    <div class="s-sec">Returns &amp; Inflation</div>
+    <div class="s-row"><span class="s-label">Real portfolio growth</span><input class="s-input pct" id="growth" type="number" step="0.1" value="6"><span style="font-size:10px;color:var(--muted)">%</span></div>
+    <div class="s-row"><span class="s-label">Inflation rate</span><input class="s-input pct" id="inflation" type="number" step="0.1" value="2.5"><span style="font-size:10px;color:var(--muted)">%</span></div>
+    <div class="s-row"><span class="s-label">Brokerage cost basis</span><input class="s-input pct" id="cost_basis" type="number" step="1" value="75"><span style="font-size:10px;color:var(--muted)">%</span></div>
+
+    <div class="s-sec">Brokerage Yield (% of balance)</div>
+    <div class="s-row"><span class="s-label">Qualified dividend yield</span><input class="s-input pct" id="div_qual_yield" type="number" step="0.01" value="1.25"><span style="font-size:10px;color:var(--muted)">%</span></div>
+    <div class="s-row"><span class="s-label">Ordinary dividend yield</span><input class="s-input pct" id="div_ord_yield" type="number" step="0.01" value="0.4167"><span style="font-size:10px;color:var(--muted)">%</span></div>
+    <div class="s-row"><span class="s-label">Taxable interest yield</span><input class="s-input pct" id="int_taxable_yield" type="number" step="0.01" value="0.4167"><span style="font-size:10px;color:var(--muted)">%</span></div>
+    <div class="s-row"><span class="s-label">Tax-exempt interest yield</span><input class="s-input pct" id="int_exempt_yield" type="number" step="0.01" value="0.4167"><span style="font-size:10px;color:var(--muted)">%</span></div>
+
+    <div class="s-sec">Spending</div>
+    <div class="s-row"><span class="s-label">Annual spend (2026$)</span><input class="s-input" id="extra_spend" type="number" value="200000"></div>
+
+    <div class="s-sec">Social Security (2026$)</div>
+    <div class="s-row"><span class="s-label">Older SS start age</span><input class="s-input" id="ss1_start_age" type="number" value="70"></div>
+    <div class="s-row"><span class="s-label">Older SS benefit</span><input class="s-input" id="ss1_amount" type="number" value="52428"></div>
+    <div class="s-row"><span class="s-label">Younger SS start age</span><input class="s-input" id="ss2_start_age" type="number" value="67"></div>
+    <div class="s-row"><span class="s-label">Younger SS benefit</span><input class="s-input" id="ss2_amount" type="number" value="29743"></div>
+
+    <div class="s-sec">Taxes</div>
+    <div class="s-row"><span class="s-label">VA state income tax rate</span><input class="s-input pct" id="state_rate" type="number" step="0.1" value="5.75"><span style="font-size:10px;color:var(--muted)">%</span></div>
+    <div class="s-row"><span class="s-label">MFJ standard deduction</span><input class="s-input" id="std_ded" type="number" value="32200"></div>
+    <div class="s-row"><span class="s-label">NIIT threshold MFJ</span><input class="s-input" id="niit_thresh" type="number" value="250000"></div>
+
+    <div class="s-sec">Roth Conversion Strategy</div>
+    <div class="s-row">
+      <span class="s-label">Strategy</span>
+      <select class="s-input" id="strategy" style="width:120px">
+        <option value="1">1 – Flat</option>
+        <option value="2">2 – Fill 10%</option>
+        <option value="3">3 – Fill 12%</option>
+        <option value="4">4 – Fill 22%</option>
+        <option value="5" selected>5 – Fill 24%</option>
+        <option value="6">6 – Fill 32%</option>
+        <option value="7">7 – Pre-RMD 32%</option>
+      </select>
+    </div>
+    <div class="s-row"><span class="s-label">Flat annual conv. (strat 1)</span><input class="s-input" id="flat_conv" type="number" value="300000"></div>
+
+    <div class="s-sec">RMD</div>
+    <div class="s-row"><span class="s-label">RMD start age</span><input class="s-input" id="rmd_age" type="number" value="73"></div>
+
+  </div>
+</div>
+
+<!-- ── MAIN ──────────────────────────────────────────── -->
+<div id="main">
+  <div id="tabs">
+    <div class="tab active" data-tab="summary">Summary</div>
+    <div class="tab" data-tab="montecarlo">Monte Carlo</div>
+    <div class="tab" data-tab="projection">Projection</div>
+  </div>
+  <div id="content">
+    <div id="tab-summary"    class="tab-panel"></div>
+    <div id="tab-montecarlo" class="tab-panel" style="display:none"></div>
+    <div id="tab-projection" class="tab-panel" style="display:none"></div>
+  </div>
+</div>
+
+<script>
+// ════════════════════════════════════════════════════════════════════
+// CONSTANTS
+// ════════════════════════════════════════════════════════════════════
+const MFJ_TOPS = [[23200,.10],[94300,.12],[201050,.22],[383900,.24],[487450,.32],[731200,.35]];
+const SNG_TOPS = [[11600,.10],[47150,.12],[100525,.22],[191950,.24],[243725,.32],[365600,.35]];
+const MFJ_LTCG0=94050, MFJ_LTCG15=583750;
+const SNG_LTCG0=47025, SNG_LTCG15=518900;
+const MFJ_IRMAA=[212000,267000,334000,400000,750000];
+const SNG_IRMAA=[106000,133500,167000,200000,375000];
+const IRMAA_AMT =[0,2082,5214,8346,11478,14616];
+const NYRS = 55;
+const STRAT_NAMES = ['','1 – Flat','2 – Fill 10%','3 – Fill 12%','4 – Fill 22%','5 – Fill 24%','6 – Fill 32%','7 – Pre-RMD 32%'];
+
+const SP500_REAL = [
+   0.1162,-0.0856, 0.3681,-0.1012,-0.2450,-0.4391,-0.0874, 0.5356, 0.0153,-0.0507,
+   0.2992,-0.3517, 0.2857, 0.0036,-0.0997,-0.1190, 0.1967, 0.2545, 0.1961, 0.2897,
+  -0.1189, 0.0170, 0.0576, 0.1976, 0.2384, 0.0246, 0.1776, 0.3996, 0.1780, 0.3182,
+   0.0628,-0.1078, 0.4236,-0.0297, 0.2551, 0.2261,-0.1028, 0.2268, 0.1879, 0.1247,
+  -0.1306, 0.2395,-0.1068, 0.0813,-0.0470, 0.1427,-0.1748,-0.2977, 0.1869,-0.1381,
+   0.2185,-0.0705, 0.0649, 0.1837, 0.2541,-0.0921, 0.1466, 0.2133, 0.2269, 0.2660,
+   0.1467, 0.0521, 0.1661, 0.3147,-0.0306, 0.2996, 0.2726, 0.0762, 0.1008, 0.3411,
+   0.2026, 0.3101, 0.2645, 0.1952,-0.1089,-0.1300,-0.2337, 0.2868, 0.1088, 0.0491,
+   0.1379, 0.0353,-0.3865, 0.2645, 0.1506, 0.0211, 0.1596, 0.1648, 0.3239, 0.1369,
+   0.0954, 0.1942,-0.0623, 0.2888,-0.0623, 0.1840, 0.2689,-0.1911, 0.2408,
+];
+
+// ════════════════════════════════════════════════════════════════════
+// HELPERS
+// ════════════════════════════════════════════════════════════════════
+const $ = id => document.getElementById(id);
+const fmt  = v => (v===undefined||v===null||isNaN(v)) ? '—' : '$'+Math.round(v).toLocaleString();
+const fmtM = v => v===0 ? '$0M' : '$'+(v/1e6).toFixed(1)+'M';
+const fmtP = v => (v*100).toFixed(1)+'%';
+const fmtN = v => Math.round(v).toLocaleString();
+const round= v => Math.round(v);
+
+function getA() {
+  const g = id => parseFloat($(id).value)||0;
+  const n = id => parseInt($(id).value)||0;
+  const p = id => (parseFloat($(id).value)||0) / 100;  // % inputs stored as e.g. 6 → 0.06
+  const a = {
+    cur_age1:n('cur_age1'), cur_age2:n('cur_age2'),
+    ret_age1:n('ret_age1'), ret_age2:n('ret_age2'),
+    trad:g('trad'), brok:g('brok'), roth:g('roth'),
+    life1:n('life1'), life2:n('life2'),
+    growth:p('growth'), inflation:p('inflation'), cost_basis:p('cost_basis'),
+    div_qual_yield:p('div_qual_yield'), div_ord_yield:p('div_ord_yield'),
+    int_taxable_yield:p('int_taxable_yield'), int_exempt_yield:p('int_exempt_yield'),
+    extra_spend:g('extra_spend'),
+    ss1_start_age:n('ss1_start_age'), ss1_amount:g('ss1_amount'),
+    ss2_start_age:n('ss2_start_age'), ss2_amount:g('ss2_amount'),
+    state_rate:p('state_rate'), std_ded:g('std_ded'), niit_thresh:g('niit_thresh'),
+    strategy:n('strategy'), flat_conv:g('flat_conv'),
+    rmd_age:n('rmd_age'),
+  };
+  a.ret_year = 2026 + (a.ret_age1 - a.cur_age1);
+  return a;
+}
+
+function taxOrd(ti, tops, f) {
+  let t=0, prev=0;
+  for (const [top,rate] of tops) {
+    t += Math.max(0, Math.min(ti, top*f) - prev) * rate;
+    prev = top*f;
+    if (ti <= top*f) break;
+  }
+  if (ti > tops[tops.length-1][0]*f)
+    t += (ti - tops[tops.length-1][0]*f) * 0.37;
+  return t;
+}
+function ltcg(g, base, g0, g15) {
+  const i0  = Math.max(0, Math.min(g, Math.max(0, g0-base)));
+  const i15 = Math.max(0, Math.min(g-i0, Math.max(0, g15-Math.max(base,g0))));
+  const i20 = Math.max(0, g-i0-i15);
+  return i15*0.15 + i20*0.20;
+}
+function getIrmaa(magi, tiers, f) {
+  for (let i=0; i<tiers.length; i++)
+    if (magi <= tiers[i]*f) return IRMAA_AMT[i];
+  return IRMAA_AMT[IRMAA_AMT.length-1];
+}
+function marginalRate(ti, tops, f) {
+  for (const [top,rate] of tops)
+    if (ti <= top*f) return rate;
+  return 0.37;
+}
+
+// ════════════════════════════════════════════════════════════════════
+// CORE SIMULATION — one year
+// ════════════════════════════════════════════════════════════════════
+function computeYear(i, A, prevTrad, prevRoth, prevBrok, stratOverride) {
+  const ret_age1 = A.ret_age1, ret_age2 = A.ret_age2;
+  const age1 = ret_age1 + i;
+  const age2  = ret_age2 + i;
+  const al1  = age1 <= A.life1;
+  const al2  = age2 <= A.life2;
+  const either = al1 || al2;
+  const surv = !al1 && al2;          // surviving spouse only
+  const yr   = A.ret_year + i;
+  const f    = Math.pow(1+A.inflation, yr-2026);
+
+  const tops  = surv ? SNG_TOPS : MFJ_TOPS;
+  const std   = (surv ? 15000 : A.std_ded) * f;
+  const niit_t= (surv ? 200000 : A.niit_thresh) * f;
+  const ltcg0 = (surv ? SNG_LTCG0  : MFJ_LTCG0)  * f;
+  const ltcg15= (surv ? SNG_LTCG15 : MFJ_LTCG15) * f;
+  const irmaa_tiers = surv ? SNG_IRMAA : MFJ_IRMAA;
+
+  // Bracket tops (inflated)
+  const mfj10=(23200*f), mfj12=(94300*f), mfj22=(201050*f), mfj24=(383900*f), mfj32=(487450*f);
+  const sng10=(11600*f), sng12=(47150*f), sng22=(100525*f), sng24=(191950*f), sng32=(243725*f);
+
+  // RMD
+  let rmd = 0;
+  if (prevTrad > 0) {
+    const lf1 = Math.max(12.2, 26.5-(age1-73)*0.92);
+    const lf2 = Math.max(12.2, 26.5-(age2-73)*0.92);
+    if (al1 && age1 >= A.rmd_age) rmd = prevTrad / lf1;
+    else if (!al1 && al2 && age2 >= A.rmd_age) rmd = prevTrad / lf2;
+    rmd = Math.round(rmd);
+  }
+
+  // Income from brokerage (scales with prior balance)
+  const dq  = round(prevBrok * A.div_qual_yield);
+  const dor = round(prevBrok * A.div_ord_yield);
+  const ti  = round(prevBrok * A.int_taxable_yield);
+  const ei  = round(prevBrok * A.int_exempt_yield);
+
+  // SS — with survivor benefit logic
+  // While older spouse is alive: each receives their own benefit when age-eligible
+  // After older spouse passes: younger spouse receives MAX(ss1_amount, ss2_amount) — survivor steps up to higher benefit
+  const s1 = (age1 >= A.ss1_start_age && al1) ? round(A.ss1_amount * f) : 0;
+  const survivorBenefit = Math.max(A.ss1_amount, A.ss2_amount);  // younger gets higher of the two
+  const s2 = al1
+    ? (age2 >= A.ss2_start_age && al2 ? round(A.ss2_amount * f) : 0)   // older alive: own benefit only
+    : (age2 >= A.ss2_start_age && al2 ? round(survivorBenefit * f) : 0); // older passed: survivor benefit
+  const ss_gross = s1 + s2;
+
+  // Approximate SS taxable for conversion room calc
+  const ss_approx = (s1 + s2) * 0.85;
+  const other_ord = dor + ti + ss_approx;
+
+  // Conversion room per strategy
+  const bkt_ceil = (sng, mfj) => surv ? sng : mfj;
+  const room10 = Math.max(0, bkt_ceil(sng10,mfj10) + std - rmd - other_ord);
+  const room12 = Math.max(0, bkt_ceil(sng12,mfj12) + std - rmd - other_ord);
+  const room22 = Math.max(0, bkt_ceil(sng22,mfj22) + std - rmd - other_ord);
+  const room24 = Math.max(0, bkt_ceil(sng24,mfj24) + std - rmd - other_ord);
+  const room32 = Math.max(0, bkt_ceil(sng32,mfj32) + std - rmd - other_ord);
+
+  const ff  = either ? Math.min(A.flat_conv, prevTrad) : 0;
+  const f10 = either ? Math.min(room10, prevTrad) : 0;
+  const f12 = either ? Math.min(room12, prevTrad) : 0;
+  const f22 = either ? Math.min(room22, prevTrad) : 0;
+  const f24 = either ? Math.min(room24, prevTrad) : 0;
+  const f32 = either ? Math.min(room32, prevTrad) : 0;
+  const fpre= (either && age1 < A.rmd_age) ? Math.min(room32, prevTrad) : 0;
+
+  const strat = stratOverride || A.strategy;
+  let conv = Math.max(0, [0,ff,f10,f12,f22,f24,f32,fpre][strat] || 0);
+  if (!either) conv = 0;
+
+  // Principal draw capped at remaining brokerage
+  const pdraw = Math.max(0, Math.min(A.extra_spend * f, prevBrok - dq - dor - ti - ei));
+  const pdraw_gain = pdraw * (1 - A.cost_basis);
+
+  // SS taxable
+  const prov_inc = rmd + conv + dq + dor + ti + round(pdraw_gain) + ei;
+  const combined = prov_inc + 0.5 * ss_gross;
+  const tl = (surv ? 25000 : 32000) * f;
+  const th = (surv ? 34000 : 44000) * f;
+  let ss_tax = 0;
+  if (ss_gross > 0) {
+    ss_tax = Math.min(0.85*ss_gross,
+      combined <= tl ? 0 :
+      combined <= th ? 0.5*(combined-tl) :
+      0.5*(th-tl) + 0.85*(combined-th));
+    ss_tax = Math.max(0, ss_tax);
+  }
+  ss_tax = round(ss_tax);
+
+  // Roth draw
+  const non_roth = dq + dor + ti + ei + pdraw + s1 + s2;
+  const roth_draw = (age1 >= 60)
+    ? Math.max(0, Math.min(A.extra_spend * f - non_roth, prevRoth))
+    : 0;
+
+  // Income totals
+  const ord_inc  = rmd + conv + dor + ti + ss_tax;
+  const cap_inc  = dq + round(pdraw_gain);
+  const magi     = ord_inc + cap_inc + ei;
+  const ti2      = Math.max(0, ord_inc - std);
+
+  // Federal ord tax
+  const fed_ord  = round(taxOrd(ti2, tops, f));
+  // Federal LTCG
+  const fed_ltcg = round(ltcg(cap_inc, ti2, ltcg0, ltcg15));
+  // NIIT
+  const niit_inc = cap_inc + ti;
+  const niit     = round(Math.min(niit_inc, Math.max(0, magi - ei - niit_t)) * 0.038);
+  // VA state
+  const state_tax= round((ord_inc + cap_inc) * A.state_rate);
+  // IRMAA
+  const on_med = surv
+    ? (age2>=65 && al2 ? 1 : 0)
+    : (age1>=65&&al1?1:0) + (age2>=65&&al2?1:0);
+  const irmaa = on_med * round(getIrmaa(magi, irmaa_tiers, f));
+  const total_tax = fed_ord + fed_ltcg + niit + state_tax + irmaa;
+
+  // Marginal rate
+  const marg = ord_inc > 0 ? marginalRate(ti2, tops, f) : 0;
+  const eff  = magi > 0 ? total_tax / magi : 0;
+
+  // End-of-year balances
+  const g = A.growth;
+  const trad_new = round(Math.max(0, (prevTrad - rmd - conv) * (1+g)));
+  const roth_new = round(Math.max(0, (prevRoth + conv - roth_draw) * (1+g)));
+  // Brokerage: deduct all yield-income + pdraw, add gross RMD cash (taxed separately), deduct taxes
+  const brok_new = round(Math.max(0, (prevBrok - dq - dor - ti - ei - pdraw + rmd) * (1+g) - total_tax));
+
+  return {
+    yr, age1, age2, f, al1, al2, surv, either,
+    std, rmd, conv,
+    dq, dor, ti, ei, s1, s2, ss_tax,
+    pdraw, roth_draw,
+    ord_inc, cap_inc, magi,
+    fed_ord, fed_ltcg, niit, state_tax, irmaa, total_tax,
+    marg, eff,
+    trad:trad_new, roth:roth_new, brok:brok_new,
+    total: trad_new + roth_new + brok_new,
+  };
+}
+
+// ════════════════════════════════════════════════════════════════════
+// RUN FULL PROJECTION
+// ════════════════════════════════════════════════════════════════════
+function runProjection(A, stratOverride) {
+  let trad=A.trad, roth=A.roth, brok=A.brok;
+  const rows = [];
+  for (let i=0; i<NYRS; i++) {
+    const row = computeYear(i, A, trad, roth, brok, stratOverride);
+    rows.push(row);
+    trad = row.trad; roth = row.roth; brok = row.brok;
+    if (!row.al1 && !row.al2) break;
+  }
+  return rows;
+}
+
+// ════════════════════════════════════════════════════════════════════
+// RENDER PROJECTION TAB
+// ════════════════════════════════════════════════════════════════════
+function renderProjection(A) {
+  const rows = runProjection(A, null);
+  const totals = {rmd:0,conv:0,dq:0,dor:0,ti:0,ei:0,s1:0,s2:0,ss_tax:0,pdraw:0,
+                  ord_inc:0,cap_inc:0,fed_ord:0,fed_ltcg:0,niit:0,state_tax:0,irmaa:0,total_tax:0};
+  rows.forEach(r=>{
+    for (const k of Object.keys(totals)) totals[k]+=r[k]||0;
+  });
+
+  const grpHdr = [
+    {label:'DATES',cols:3,color:'#1F3864'},
+    {label:'INCOME STREAMS',cols:8,color:'#1F4E79'},
+    {label:'INCOME TOTALS',cols:3,color:'#1F3864'},
+    {label:'TAXES & RATES',cols:7,color:'#7B2A00'},
+    {label:'BALANCES',cols:4,color:'#1F6438'},
+  ];
+
+  const hdrs=['Year','Sp1','Sp2',
+              'RMD','Conv','Qual Div','Ord Div','Tax Int','Ex Int','SS1','SS2','SS Tax','P.Draw','Roth Draw',
+              'Ord Inc','Cap Inc','MAGI',
+              'Fed Ord','Fed LTCG','NIIT','VA State','IRMAA','Total Tax','Marg%','Eff%',
+              'Trad','Roth','Brok','TOTAL'];
+
+  let html = `<div class="page-title">Year-by-Year Projection</div>
+<div class="page-sub">Strategy: ${STRAT_NAMES[A.strategy]} | Starts ${A.ret_year} | MFJ → Single at age ${A.life1}</div>
+<div class="tbl-wrap"><table>
+<thead>
+<tr>
+  <th colspan="3" style="background:#1F3864">DATES</th>
+  <th colspan="11" style="background:#1F4E79">INCOME STREAMS</th>
+  <th colspan="3" style="background:#1F3864">INCOME TOTALS</th>
+  <th colspan="7" style="background:#7B2A00">TAXES &amp; RATES</th>
+  <th colspan="4" style="background:#1F6438">BALANCES</th>
+</tr>
+<tr>${hdrs.map(h=>`<th>${h}</th>`).join('')}</tr>
+</thead><tbody>`;
+
+  rows.forEach((r, idx) => {
+    const cls = r.surv ? 'surv' : (r.age1 === A.rmd_age ? 'rmd-yr' : (idx%2===0?'strip':''));
+    html += `<tr class="${cls}">
+<td class="yr">${r.yr}</td><td class="age">${r.age1}</td><td class="age">${r.age2}</td>
+<td class="tax">${fmt(r.rmd)}</td>
+<td class="conv">${fmt(r.conv)}</td>
+<td>${fmt(r.dq)}</td><td>${fmt(r.dor)}</td><td>${fmt(r.ti)}</td><td>${fmt(r.ei)}</td>
+<td>${fmt(r.s1)}</td><td>${fmt(r.s2)}</td><td class="tax">${fmt(r.ss_tax)}</td>
+<td>${fmt(r.pdraw)}</td><td class="roth-bal">${fmt(r.roth_draw)}</td>
+<td>${fmt(r.ord_inc)}</td><td>${fmt(r.cap_inc)}</td><td class="big">${fmt(r.magi)}</td>
+<td class="tax">${fmt(r.fed_ord)}</td><td class="tax">${fmt(r.fed_ltcg)}</td>
+<td class="tax">${fmt(r.niit)}</td><td class="tax">${fmt(r.state_tax)}</td>
+<td class="tax">${fmt(r.irmaa)}</td><td class="tax big">${fmt(r.total_tax)}</td>
+<td style="color:#1F3864">${(r.marg*100).toFixed(0)}%</td>
+<td style="color:var(--muted)">${(r.eff*100).toFixed(1)}%</td>
+<td>${fmt(r.trad)}</td><td class="roth-bal">${fmt(r.roth)}</td>
+<td>${fmt(r.brok)}</td><td class="big">${fmt(r.total)}</td>
+</tr>`;
+  });
+
+  // Totals row
+  html += `<tr class="totals">
+<td colspan="3" style="text-align:left;padding-left:8px">TOTALS</td>
+<td>${fmt(totals.rmd)}</td><td>${fmt(totals.conv)}</td>
+<td>${fmt(totals.dq)}</td><td>${fmt(totals.dor)}</td><td>${fmt(totals.ti)}</td><td>${fmt(totals.ei)}</td>
+<td>${fmt(totals.s1)}</td><td>${fmt(totals.s2)}</td><td>${fmt(totals.ss_tax)}</td>
+<td>${fmt(totals.pdraw)}</td><td>—</td>
+<td>${fmt(totals.ord_inc)}</td><td>${fmt(totals.cap_inc)}</td><td>—</td>
+<td>${fmt(totals.fed_ord)}</td><td>${fmt(totals.fed_ltcg)}</td>
+<td>${fmt(totals.niit)}</td><td>${fmt(totals.state_tax)}</td>
+<td>${fmt(totals.irmaa)}</td><td>${fmt(totals.total_tax)}</td>
+<td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td>
+</tr>`;
+
+  html += '</tbody></table></div>';
+  html += `<div class="note-box" style="margin-top:10px;font-size:10px">
+🟠 Orange row = RMD starts (age ${A.rmd_age}) &nbsp;|&nbsp; 🟢 Green rows = surviving spouse (single filer) &nbsp;|&nbsp; 
+RMD cash flows into brokerage after distribution &nbsp;|&nbsp; Roth draw is tax-free (not in MAGI)
+</div>`;
+  $('tab-projection').innerHTML = html;
+}
+
+// ════════════════════════════════════════════════════════════════════
+// RENDER SUMMARY TAB
+// ════════════════════════════════════════════════════════════════════
+function finalBalance(rows, key) {
+  for (let i=rows.length-1; i>=0; i--)
+    if (rows[i][key] > 0) return rows[i][key];
+  return 0;
+}
+
+function renderSummary(A) {
+  const rows = runProjection(A, null);
+  const totTax  = rows.reduce((s,r)=>s+r.total_tax,0);
+  const totConv = rows.reduce((s,r)=>s+r.conv,0);
+  const nConv   = rows.filter(r=>r.conv>0).length;
+  const yr1 = rows[0] || {};
+  const retYr = A.ret_year;
+  const retAge2 = A.cur_age2 + (retYr - 2026);
+
+  // Strategy comparison
+  const strats = [];
+  for (let s=1; s<=7; s++) {
+    const sr = runProjection(A, s);
+    strats.push({
+      name: STRAT_NAMES[s],
+      tax:  sr.reduce((a,r)=>a+r.total_tax,0),
+      conv: sr.reduce((a,r)=>a+r.conv,0),
+      tradF: finalBalance(sr,'trad'),
+      rothF: finalBalance(sr,'roth'),
+      brokF: finalBalance(sr,'brok'),
+      totalF: finalBalance(sr,'trad')+finalBalance(sr,'roth')+finalBalance(sr,'brok'),
+    });
+  }
+  const minTax  = Math.min(...strats.map(s=>s.tax));
+  const maxPort = Math.max(...strats.map(s=>s.totalF));
+
+  let html = `<div class="page-title">Summary</div>
+<div class="page-sub">Lifetime totals, milestones &amp; strategy comparison — all live</div>
+<div class="sum-grid">
+
+<div class="sum-card">
+  <h3>Retirement Snapshot</h3>
+  <div class="sum-row"><span class="lbl">Projection start year</span><span class="val">${retYr}</span></div>
+  <div class="sum-row"><span class="lbl">Older spouse age at retirement</span><span class="val">${A.ret_age1}</span></div>
+  <div class="sum-row"><span class="lbl">Younger spouse age at retirement</span><span class="val">${retAge2}</span></div>
+  <div class="sum-row"><span class="lbl">Years until RMD</span><span class="val">${A.rmd_age - A.ret_age1}</span></div>
+  <div class="sum-row"><span class="lbl">Years until older spouse passes</span><span class="val">${A.life1 - A.ret_age1}</span></div>
+</div>
+
+<div class="sum-card">
+  <h3>Lifetime Tax Totals</h3>
+  <div class="sum-row"><span class="lbl">Federal (ord + LTCG + NIIT)</span><span class="val">${fmt(rows.reduce((s,r)=>s+r.fed_ord+r.fed_ltcg+r.niit,0))}</span></div>
+  <div class="sum-row"><span class="lbl">VA state tax (5.75%)</span><span class="val">${fmt(rows.reduce((s,r)=>s+r.state_tax,0))}</span></div>
+  <div class="sum-row"><span class="lbl">IRMAA surcharges</span><span class="val">${fmt(rows.reduce((s,r)=>s+r.irmaa,0))}</span></div>
+  <div class="sum-row"><span class="lbl">TOTAL lifetime tax</span><span class="val big" style="font-size:13px">${fmt(totTax)}</span></div>
+</div>
+
+<div class="sum-card">
+  <h3>Roth Conversion Summary</h3>
+  <div class="sum-row"><span class="lbl">Total converted (Trad → Roth)</span><span class="val">${fmt(totConv)}</span></div>
+  <div class="sum-row"><span class="lbl">Years with conversions</span><span class="val">${nConv}</span></div>
+</div>
+
+<div class="sum-card">
+  <h3>Final Balances (end of plan)</h3>
+  <div class="sum-row"><span class="lbl">Final Traditional 401k</span><span class="val">${fmt(finalBalance(rows,'trad'))}</span></div>
+  <div class="sum-row"><span class="lbl">Final Roth</span><span class="val green">${fmt(finalBalance(rows,'roth'))}</span></div>
+  <div class="sum-row"><span class="lbl">Final Brokerage</span><span class="val">${fmt(finalBalance(rows,'brok'))}</span></div>
+  <div class="sum-row"><span class="lbl">TOTAL final portfolio</span><span class="val big" style="font-size:13px">${fmt(finalBalance(rows,'total'))}</span></div>
+</div>
+
+<div class="sum-card">
+  <h3>Key Milestones</h3>
+  <div class="sum-row"><span class="lbl">Older Medicare (age 65)</span><span class="val">${retYr+(65-A.ret_age1)}</span></div>
+  <div class="sum-row"><span class="lbl">Younger Medicare (age 65)</span><span class="val">${retYr+(65-retAge2)}</span></div>
+  <div class="sum-row"><span class="lbl">Older SS starts</span><span class="val">${retYr+(A.ss1_start_age-A.ret_age1)}</span></div>
+  <div class="sum-row"><span class="lbl">Younger SS starts</span><span class="val">${retYr+(A.ss2_start_age-retAge2)}</span></div>
+  <div class="sum-row"><span class="lbl">RMD starts</span><span class="val">${retYr+(A.rmd_age-A.ret_age1)}</span></div>
+  <div class="sum-row"><span class="lbl">Single filer starts</span><span class="val">${retYr+(A.life1-A.ret_age1)}</span></div>
+</div>
+
+<div class="sum-card">
+  <h3>Year 1 Snapshot (${retYr})</h3>
+  <div class="sum-row"><span class="lbl">Conversion</span><span class="val">${fmt(yr1.conv)}</span></div>
+  <div class="sum-row"><span class="lbl">Ordinary income</span><span class="val">${fmt(yr1.ord_inc)}</span></div>
+  <div class="sum-row"><span class="lbl">MAGI</span><span class="val">${fmt(yr1.magi)}</span></div>
+  <div class="sum-row"><span class="lbl">Total tax</span><span class="val red">${fmt(yr1.total_tax)}</span></div>
+  <div class="sum-row"><span class="lbl">Marginal fed rate</span><span class="val">${(yr1.marg*100).toFixed(0)}%</span></div>
+  <div class="sum-row"><span class="lbl">Effective total rate</span><span class="val">${(yr1.eff*100).toFixed(1)}%</span></div>
+</div>
+
+</div>
+
+<div style="margin-top:24px">
+<div style="font-size:10px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);font-family:var(--font-mono);margin-bottom:10px">
+  STRATEGY COMPARISON — all 7 strategies vs your current assumptions
+</div>
+<div class="tbl-wrap">
+<table class="strat-table">
+<thead><tr>
+  <th style="text-align:left;min-width:180px">Strategy</th>
+  <th>Lifetime Tax</th><th>Total Converted</th>
+  <th>Final Trad</th><th>Final Roth</th><th>Final Brok</th><th>Final Total</th>
+</tr></thead><tbody>`;
+
+  strats.forEach((s,i) => {
+    const isMinTax  = s.tax   === minTax;
+    const isMaxPort = s.totalF=== maxPort;
+    const isCurrent = (i+1) === A.strategy;
+    const rowCls = (isMinTax||isMaxPort) ? 'best-row' : (i%2===0?'strip':'');
+    html += `<tr class="${rowCls}">
+<td>${s.name} ${isCurrent?'<span class="badge badge-green">current</span>':''} ${isMinTax?'<span class="badge badge-amber">min tax</span>':''} ${isMaxPort?'<span class="badge badge-green">max portfolio</span>':''}</td>
+<td>${fmt(s.tax)}</td><td>${fmt(s.conv)}</td>
+<td>${fmt(s.tradF)}</td><td>${fmt(s.rothF)}</td><td>${fmt(s.brokF)}</td>
+<td style="font-weight:700">${fmt(s.totalF)}</td>
+</tr>`;
+  });
+
+  const minTaxStrat = strats.find(s=>s.tax===minTax);
+  const maxPortStrat= strats.find(s=>s.totalF===maxPort);
+  html += `</tbody></table></div>
+<div class="note-box" style="margin-top:10px">
+  <strong>Lowest lifetime tax:</strong> ${minTaxStrat?.name} &nbsp;|&nbsp;
+  <strong>Largest final portfolio:</strong> ${maxPortStrat?.name}
+</div>`;
+
+  html += `<div class="sum-card" style="margin-top:16px">
+<h3>Notes &amp; Caveats</h3>`;
+  [
+    '1. Projection starts at older spouse retirement year. Ages, milestones, and inflation all flow from that start year.',
+    '2. Conversion room = BracketTop + StdDed - RMD - OrdDiv - TaxInt - SS taxable. Fills ordinary taxable income to ceiling.',
+    '3. VA taxes ALL income at 5.75%: ordinary, qualified dividends, capital gains, taxable interest.',
+    '4. Tax-exempt interest excluded from income tax but counts toward IRMAA MAGI.',
+    '5. After older spouse reaches life expectancy, model switches to Single filer.',
+    '6. IRMAA looks back 2 years: income at age 63 sets surcharge at 65.',
+    '7. This model is for planning purposes only. Consult a CPA/CFP before executing Roth conversions.',
+  ].forEach(n => { html += `<div class="sum-row"><span class="lbl" style="font-size:10px;color:var(--muted)">${n}</span></div>`; });
+  html += '</div></div>';
+
+  $('tab-summary').innerHTML = html;
+}
+
+// ════════════════════════════════════════════════════════════════════
+// MONTE CARLO
+// ════════════════════════════════════════════════════════════════════
+const N_SIMS = 5000;
+let mcResults = null;
+let mcRunning = false;
+
+function mcSimulate(returnSeq, A) {
+  // All balances and flows are in NOMINAL dollars throughout.
+  // gr from SP500_REAL is a REAL return; convert to nominal: gr_nom = gr + inflation (approx).
+  // Brackets/SS/spending are inflated by f = (1+inflation)^(yr-2026) — consistent with nominal.
+  // At end, deflate portfolio to real 2026$ for display.
+  let trad = A.trad, roth = A.roth, brok = A.brok;
+  const planYrs = A.life2 - A.ret_age2 + 1;
+  let brok_dep = null;
+  const portfolio = [];
+
+  for (let i = 0; i < Math.min(planYrs, returnSeq.length); i++) {
+    const gr_real = returnSeq[i];                        // real S&P return this year
+    const gr      = gr_real + A.inflation;               // convert to nominal (linear approx)
+    const age1 = A.ret_age1 + i;
+    const age2 = A.ret_age2 + i;
+    const al1  = age1 <= A.life1;
+    const al2  = age2 <= A.life2;
+    if (!al1 && !al2) break;
+
+    const yr   = A.ret_year + i;
+    const f    = Math.pow(1 + A.inflation, yr - 2026);   // nominal inflation factor from 2026
+    const surv = !al1 && al2;
+    const tops = surv ? SNG_TOPS : MFJ_TOPS;
+    const std  = (surv ? 15000 : A.std_ded) * f;
+    const niit_t  = (surv ? 200000 : A.niit_thresh) * f;
+    const ltcg0   = (surv ? SNG_LTCG0  : MFJ_LTCG0)  * f;
+    const ltcg15  = (surv ? SNG_LTCG15 : MFJ_LTCG15) * f;
+    const irmaa_tiers = surv ? SNG_IRMAA : MFJ_IRMAA;
+    const bkt24 = (surv ? 191950 : 383900) * f;
+    const bkt32 = (surv ? 243725 : 487450) * f;
+    const bkt22 = (surv ? 100525 : 201050) * f;
+    const bkt12 = (surv ? 47150  : 94300)  * f;
+    const bkt10 = (surv ? 11600  : 23200)  * f;
+
+    // RMD
+    let rmd = 0;
+    if (trad > 0) {
+      const lf1 = Math.max(12.2, 26.5 - (age1 - 73) * 0.92);
+      const lf2 = Math.max(12.2, 26.5 - (age2 - 73) * 0.92);
+      if (al1 && age1 >= A.rmd_age)             rmd = Math.round(trad / lf1);
+      else if (!al1 && al2 && age2 >= A.rmd_age) rmd = Math.round(trad / lf2);
+    }
+
+    // Brokerage yield income (nominal — scales with nominal brok balance)
+    const dq  = Math.round(brok * A.div_qual_yield);
+    const dor = Math.round(brok * A.div_ord_yield);
+    const ti  = Math.round(brok * A.int_taxable_yield);
+    const ei  = Math.round(brok * A.int_exempt_yield);
+
+    // SS with survivor benefit (nominal — inflated by f)
+    const survivorBenefit = Math.max(A.ss1_amount, A.ss2_amount);
+    const s1 = (age1 >= A.ss1_start_age && al1) ? Math.round(A.ss1_amount * f) : 0;
+    const s2 = al1
+      ? (age2 >= A.ss2_start_age && al2 ? Math.round(A.ss2_amount * f) : 0)
+      : (age2 >= A.ss2_start_age && al2 ? Math.round(survivorBenefit * f) : 0);
+    const ss_gross = s1 + s2;
+
+    // Conversion room
+    const other_ord = dor + ti + ss_gross * 0.85;
+    const room = (ceil) => Math.max(0, ceil + std - rmd - other_ord);
+    const strat = A.strategy;
+    const either = al1 || al2;
+    let conv = 0;
+    if (either) {
+      if      (strat === 1) conv = Math.min(A.flat_conv, trad);
+      else if (strat === 2) conv = Math.min(room(bkt10), trad);
+      else if (strat === 3) conv = Math.min(room(bkt12), trad);
+      else if (strat === 4) conv = Math.min(room(bkt22), trad);
+      else if (strat === 5) conv = Math.min(room(bkt24), trad);
+      else if (strat === 6) conv = Math.min(room(bkt32), trad);
+      else if (strat === 7) conv = age1 < A.rmd_age ? Math.min(room(bkt32), trad) : 0;
+      conv = Math.max(0, conv);
+    }
+
+    // Principal draw — capped at remaining brokerage (nominal spend target)
+    const pdraw = Math.max(0, Math.min(A.extra_spend * f, brok - dq - dor - ti - ei));
+    const pdraw_gain = pdraw * (1 - A.cost_basis);
+
+    // SS taxable
+    const prov = rmd + conv + dq + dor + ti + Math.round(pdraw_gain) + ei;
+    const combined = prov + 0.5 * ss_gross;
+    const tl = (surv ? 25000 : 32000) * f;
+    const th = (surv ? 34000 : 44000) * f;
+    let ss_tax = 0;
+    if (ss_gross > 0) {
+      ss_tax = Math.max(0, Math.min(0.85 * ss_gross,
+        combined <= tl ? 0 :
+        combined <= th ? 0.5 * (combined - tl) :
+        0.5 * (th - tl) + 0.85 * (combined - th)));
+    }
+
+    // Income totals & taxes
+    const ord_inc  = rmd + conv + dor + ti + Math.round(ss_tax);
+    const cap_inc  = dq + Math.round(pdraw_gain);
+    const magi     = ord_inc + cap_inc + ei;
+    const non_roth = dq + dor + ti + ei + pdraw + s1 + s2;
+    const roth_draw = age1 >= 60
+      ? Math.max(0, Math.min(A.extra_spend * f - non_roth, roth)) : 0;
+
+    const ti2      = Math.max(0, ord_inc - std);
+    const fed_ord  = taxOrd(ti2, tops, f);
+    const fed_ltcg = ltcg(cap_inc, ti2, ltcg0, ltcg15);
+    const niit_amt = Math.min(cap_inc + ti, Math.max(0, magi - ei - niit_t)) * 0.038;
+    const state    = (ord_inc + cap_inc) * A.state_rate;
+    const on_med   = surv
+      ? (age2 >= 65 && al2 ? 1 : 0)
+      : (age1 >= 65 && al1 ? 1 : 0) + (age2 >= 65 && al2 ? 1 : 0);
+    const irmaa    = on_med * getIrmaa(magi, irmaa_tiers, f);
+    const yr_tax   = Math.round(fed_ord + fed_ltcg + niit_amt + state + irmaa);
+
+    // Update nominal balances with nominal random return
+    const trad_new = Math.max(0, Math.round((trad - rmd - conv) * (1 + gr)));
+    const roth_new = Math.max(0, Math.round((roth + conv - roth_draw) * (1 + gr)));
+    const brok_new = Math.max(0, Math.round((brok - dq - dor - ti - ei - pdraw + rmd) * (1 + gr) - yr_tax));
+
+    if (brok > 1000 && brok_new < 1000 && !brok_dep) brok_dep = yr;
+    trad = trad_new; roth = roth_new; brok = brok_new;
+
+    // Deflate to real 2026$ for display: divide by cumulative inflation from 2026
+    const real_total = (trad + roth + brok) / Math.pow(1 + A.inflation, yr - 2026 + 1);
+    portfolio.push(real_total);
+  }
+
+  // Depletion threshold in nominal dollars at end of plan
+  const nominalThreshold = 10000 * Math.pow(1 + A.inflation, A.life2 - A.ret_age2);
+  return { ok: (trad + roth + brok) >= nominalThreshold, portfolio, brok_dep };
+}
+
+async function runMonteCarlo(A) {
+  if (mcRunning) return;
+  mcRunning = true;
+  const btn = $('mc-run-btn');
+  if (btn) btn.disabled = true;
+
+  $('mc-container').innerHTML = `<div id="mc-spinner">
+    <div class="spinner"></div>
+    <div>Running ${N_SIMS.toLocaleString()} simulations…</div>
+    <div id="mc-progress"><div id="mc-progress-bar"></div></div>
+  </div>`;
+
+  await new Promise(r=>setTimeout(r,20));
+
+  const planYrs = A.life2 - A.ret_age2 + 1;
+  const seqLen  = planYrs + 5;
+
+  // Seeded simple RNG
+  let seed = 42;
+  function rand() {
+    seed = (seed * 1664525 + 1013904223) & 0xFFFFFFFF;
+    return (seed >>> 0) / 0xFFFFFFFF;
+  }
+  function choice() { return SP500_REAL[Math.floor(rand() * SP500_REAL.length)]; }
+
+  const allSims = [];
+  const CHUNK = 250;
+  for (let s=0; s<N_SIMS; s++) {
+    const seq = Array.from({length:seqLen}, choice);
+    allSims.push(mcSimulate(seq, A));
+    if (s % CHUNK === CHUNK-1) {
+      const pb = $('mc-progress-bar');
+      if (pb) pb.style.width = ((s+1)/N_SIMS*100)+'%';
+      await new Promise(r=>setTimeout(r,0));
+    }
+  }
+
+  const success_rate = allSims.filter(s=>s.ok).length / N_SIMS;
+  const finals = allSims.map(s => s.portfolio.length ? s.portfolio[s.portfolio.length-1] : 0).sort((a,b)=>a-b);
+  const brok_deps = allSims.map(s=>s.brok_dep).filter(Boolean).sort((a,b)=>a-b);
+  const med_brok = brok_deps.length ? brok_deps[Math.floor(brok_deps.length/2)] : null;
+
+  // Annual bands
+  const annualBands = [];
+  for (let i=0; i<planYrs; i++) {
+    const vals = allSims.map(s => i < s.portfolio.length ? s.portfolio[i] : 0).sort((a,b)=>a-b);
+    annualBands.push({
+      year: A.ret_year+i, age1: A.ret_age1+i, age2: A.ret_age2+i,
+      p10: vals[Math.floor(N_SIMS*.10)],
+      p25: vals[Math.floor(N_SIMS*.25)],
+      p50: vals[Math.floor(N_SIMS*.50)],
+      p75: vals[Math.floor(N_SIMS*.75)],
+      p90: vals[Math.floor(N_SIMS*.90)],
+    });
+  }
+
+  mcResults = { success_rate, finals, brok_deps, med_brok, annualBands, planYrs };
+  mcRunning = false;
+  renderMCResults(A);
+}
+
+function renderMCResults(A) {
+  if (!mcResults) { renderMCPlaceholder(); return; }
+  const {success_rate, finals, brok_deps, med_brok, annualBands} = mcResults;
+  const sr = success_rate;
+  const srPct = (sr*100).toFixed(1);
+  const srCls = sr>=0.90?'green':sr>=0.75?'amber':'red';
+  const srLabel = sr>=0.95?'Excellent':sr>=0.85?'Good':sr>=0.70?'Acceptable':'Reduce spend';
+  const med_final = finals[Math.floor(finals.length/2)];
+  const p10_final = finals[Math.floor(finals.length*.10)];
+  const p90_final = finals[Math.floor(finals.length*.90)];
+  const brok_pct  = brok_deps.length / N_SIMS;
+
+  let html = `<div class="page-title">Monte Carlo</div>
+<div class="page-sub">${N_SIMS.toLocaleString()} simulations | Bootstrap from S&P 500 real returns 1926–2024 | Strategy: ${STRAT_NAMES[A.strategy]}</div>
+<div id="mc-container">
+<div class="mc-stat-grid">
+  <div class="mc-stat ${srCls}">
+    <div class="label">Plan Success Rate</div>
+    <div class="value">${srPct}%</div>
+    <div class="note">${srLabel} — portfolio never fully depletes</div>
+  </div>
+  <div class="mc-stat">
+    <div class="label">Median Final Portfolio</div>
+    <div class="value">${fmtM(med_final)}</div>
+    <div class="note">Real 2026 dollars, 50th percentile</div>
+  </div>
+  <div class="mc-stat">
+    <div class="label">10th / 90th Percentile</div>
+    <div class="value" style="font-size:16px">${fmtM(p10_final)} / ${fmtM(p90_final)}</div>
+    <div class="note">Bad luck vs good luck range</div>
+  </div>
+  <div class="mc-stat">
+    <div class="label">Brokerage Depletes</div>
+    <div class="value">${(brok_pct*100).toFixed(0)}%</div>
+    <div class="note">${med_brok?'Median year: '+med_brok:'Rare event — Roth draws kick in'}</div>
+  </div>
+</div>`;
+
+  // Chart
+  html += `<div id="mc-canvas-wrap">
+<h3>Portfolio Trajectory — Percentile Bands (real 2026$M)</h3>
+<canvas id="mc-chart" height="280"></canvas>
+</div>`;
+
+  // Distribution table
+  const pctiles = [[5,'#FFC7CE','#9C0006','Very bad luck'],[10,'#FFC7CE','#9C0006','Poor — severe early bear'],[25,'#FFEB9C','#9C5700','Below average'],[50,'#C6EFCE','#375623','Median'],[75,'#C6EFCE','#375623','Good outcome'],[90,'#DDEEFF','#185FA5','Great outcome'],[95,'#DDEEFF','#185FA5','Exceptional']];
+  const maxFinal = finals[Math.floor(finals.length*.99)];
+  html += `<div class="mc-dist-wrap"><h3>Final Portfolio Distribution (${N_SIMS.toLocaleString()} sims)</h3>`;
+  pctiles.forEach(([p,bg,tc,label])=>{
+    const v = finals[Math.floor(finals.length*p/100)];
+    const barW = Math.min(100, Math.round(v/maxFinal*100));
+    html += `<div class="dist-row">
+<span class="pct-lbl">${p}th percentile</span>
+<div class="bar-wrap"><div class="bar" style="width:${barW}%;background:${bg}"></div></div>
+<span class="amt" style="color:${tc}">${fmtM(v)}</span>
+<span style="font-size:10px;color:var(--muted);width:160px;padding-left:8px">${label}</span>
+</div>`;
+  });
+  html += '</div>';
+
+  // Historical returns — one line only (no table)
+  html += `<div class="note-box">
+<strong>Historical S&P 500 Real Returns Used (1926–2024)</strong> — 99 years of real total returns (mean 9.65%, stdev 18.89%) used as the bootstrap sampling pool. Each simulation draws ${A.life2-A.ret_age2+1} returns at random with replacement.<br><br>
+<strong>Method:</strong> Sequence-of-returns risk is the primary failure driver — a severe bear in years 1–10 of retirement can be devastating.
+</div>`;
+
+  // Notes
+  html += `<div class="note-box">
+<strong>Method:</strong> Each simulation draws ${A.life2-A.ret_age2+1} returns at random with replacement from 99 years of historical data.
+All returns are REAL (inflation-adjusted) total returns including dividends.
+Sequence-of-returns risk is the primary failure driver — a severe bear in years 1–10 is devastating.
+<br><br>Run the simulation again after changing assumptions using the button above.
+</div>`;
+
+  html += `</div>`;
+  $('tab-montecarlo').innerHTML = html;
+
+  // Draw chart
+  requestAnimationFrame(()=>drawMCChart(annualBands));
+}
+
+function drawMCChart(bands) {
+  const canvas = $('mc-chart');
+  if (!canvas) return;
+  const wrap = canvas.parentElement;
+  canvas.width  = wrap.clientWidth - 40;
+  canvas.height = 280;
+  const ctx = canvas.getContext('2d');
+  const W=canvas.width, H=canvas.height;
+  const PAD={l:60,r:20,t:20,b:40};
+  const pw=W-PAD.l-PAD.r, ph=H-PAD.t-PAD.b;
+
+  const allVals = bands.flatMap(b=>[b.p10,b.p90]);
+  const maxV = Math.max(...allVals);
+  const toX = i => PAD.l + (i/(bands.length-1))*pw;
+  const toY = v => PAD.t + ph - (v/maxV)*ph;
+
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle='#fff';ctx.fillRect(0,0,W,H);
+
+  // Grid
+  ctx.strokeStyle='#E8ECF5';ctx.lineWidth=1;
+  for (let t=0;t<=4;t++) {
+    const y=PAD.t+t*ph/4;
+    ctx.beginPath();ctx.moveTo(PAD.l,y);ctx.lineTo(W-PAD.r,y);ctx.stroke();
+    ctx.fillStyle='#999';ctx.font='9px DM Mono,monospace';ctx.textAlign='right';
+    ctx.fillText('$'+(maxV*(1-t/4)/1e6).toFixed(0)+'M',PAD.l-4,y+3);
+  }
+  // X axis labels
+  ctx.fillStyle='#999';ctx.textAlign='center';ctx.font='9px DM Mono,monospace';
+  bands.forEach((b,i)=>{
+    if (i%(Math.ceil(bands.length/8))===0) {
+      ctx.fillText(b.year, toX(i), H-PAD.b+14);
+    }
+  });
+
+  // Bands
+  function fillBand(topKey, botKey, color) {
+    ctx.beginPath();
+    bands.forEach((b,i)=>{ i===0?ctx.moveTo(toX(i),toY(b[topKey])):ctx.lineTo(toX(i),toY(b[topKey])); });
+    for (let i=bands.length-1;i>=0;i--) ctx.lineTo(toX(i),toY(bands[i][botKey]));
+    ctx.closePath();ctx.fillStyle=color;ctx.fill();
+  }
+  fillBand('p90','p10','rgba(30,58,100,.08)');
+  fillBand('p75','p25','rgba(30,58,100,.14)');
+
+  // Lines
+  function drawLine(key, color, lw=1.5) {
+    ctx.beginPath();ctx.strokeStyle=color;ctx.lineWidth=lw;
+    bands.forEach((b,i)=>{ i===0?ctx.moveTo(toX(i),toY(b[key])):ctx.lineTo(toX(i),toY(b[key])); });
+    ctx.stroke();
+  }
+  drawLine('p10','#E24B4A');
+  drawLine('p25','#F0A830',1.5);
+  drawLine('p50','#1F3864',2.5);
+  drawLine('p75','#2E75B6',1.5);
+  drawLine('p90','#1F6438');
+
+  // Legend
+  const legend=[['p10','#E24B4A','10th'],['p25','#F0A830','25th'],['p50','#1F3864','Median'],['p75','#2E75B6','75th'],['p90','#1F6438','90th']];
+  legend.forEach(([k,c,lbl],i)=>{
+    const lx=PAD.l+i*50;
+    ctx.strokeStyle=c;ctx.lineWidth=2;
+    ctx.beginPath();ctx.moveTo(lx,PAD.t-6);ctx.lineTo(lx+18,PAD.t-6);ctx.stroke();
+    ctx.fillStyle='#444';ctx.font='9px DM Mono,monospace';ctx.textAlign='left';
+    ctx.fillText(lbl,lx+20,PAD.t-3);
+  });
+}
+
+function renderMCPlaceholder() {
+  $('tab-montecarlo').innerHTML = `
+<div class="page-title">Monte Carlo</div>
+<div class="page-sub">5,000 simulations | Bootstrap from S&P 500 real returns 1926–2024</div>
+<div id="mc-container">
+  <div style="background:#fff;border-radius:8px;padding:32px;text-align:center;border:1px solid var(--border)">
+    <div style="font-size:32px;margin-bottom:12px">📊</div>
+    <div style="font-family:var(--font-serif);font-size:16px;color:var(--navy);margin-bottom:8px">Ready to simulate</div>
+    <div style="font-size:11px;color:var(--muted);font-family:var(--font-mono);margin-bottom:18px">Runs 5,000 bootstrap simulations using 99 years of S&P 500 real return data.<br>Updates when you change assumptions.</div>
+    <button class="run-btn" id="mc-run-btn" onclick="startMC()">Run Monte Carlo (5,000 sims)</button>
+  </div>
+</div>`;
+}
+
+function startMC() {
+  const A = getA();
+  runMonteCarlo(A);
+}
+
+// ════════════════════════════════════════════════════════════════════
+// TAB ROUTING & INPUT HANDLING
+// ════════════════════════════════════════════════════════════════════
+// PERSISTENCE — localStorage (works when opened as a local file)
+// ════════════════════════════════════════════════════════════════════
+const STORAGE_KEY = 'roth_planner_v14_inputs';
+
+function saveInputs() {
+  const data = {};
+  document.querySelectorAll('.s-input').forEach(el => { data[el.id] = el.value; });
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); } catch(e) {}
+}
+
+function loadInputs() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return false;
+    const data = JSON.parse(raw);
+    let loaded = 0;
+    document.querySelectorAll('.s-input').forEach(el => {
+      if (data[el.id] !== undefined) { el.value = data[el.id]; loaded++; }
+    });
+    return loaded > 0;
+  } catch(e) { return false; }
+}
+
+function resetInputs() {
+  try { localStorage.removeItem(STORAGE_KEY); } catch(e) {}
+  location.reload();
+}
+
+// ════════════════════════════════════════════════════════════════════
+let activeTab = 'summary';
+let debounceTimer = null;
+
+document.querySelectorAll('.tab').forEach(t => {
+  t.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(x=>x.style.display='none');
+    t.classList.add('active');
+    activeTab = t.dataset.tab;
+    $(`tab-${activeTab}`).style.display='';
+    updateAll();
+  });
+});
+
+function updateAll() {
+  const A = getA();
+  $('ret_year_disp').textContent = A.ret_year;
+  if (activeTab === 'projection') renderProjection(A);
+  else if (activeTab === 'summary') renderSummary(A);
+  else if (activeTab === 'montecarlo') {
+    if (mcResults) { mcResults = null; }
+    if (!mcRunning) renderMCPlaceholder();
+  }
+}
+
+document.querySelectorAll('.s-input').forEach(el => {
+  el.addEventListener('input', () => {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(() => { saveInputs(); updateAll(); }, 180);
+  });
+});
+
+// Load saved inputs on startup, then render
+const didRestore = loadInputs();
+
+// Show a subtle restore indicator in the sidebar header
+if (didRestore) {
+  const hdr = $('sidebar-header');
+  const pill = document.createElement('div');
+  pill.style.cssText = 'margin-top:6px;font-size:9px;color:#7EC8A4;font-family:var(--font-mono);display:flex;align-items:center;justify-content:space-between';
+  pill.innerHTML = `<span>✓ Inputs restored from last session</span><span onclick="resetInputs()" style="cursor:pointer;color:#F0A890;text-decoration:underline">Reset</span>`;
+  hdr.appendChild(pill);
+}
+
+// Initial render
+updateAll();
+</script>
+</body>
+</html>
