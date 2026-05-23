@@ -223,26 +223,25 @@ canvas#mc-chart{width:100%;height:300px;display:block}
     <div class="s-sec">Returns &amp; Inflation</div>
     <div class="s-row"><span class="s-label">Real portfolio growth</span><input class="s-input pct" id="growth" type="number" step="0.1" value="6"><span style="font-size:10px;color:var(--muted)">%</span></div>
     <div class="s-row"><span class="s-label">Inflation rate</span><input class="s-input pct" id="inflation" type="number" step="0.1" value="2.5"><span style="font-size:10px;color:var(--muted)">%</span></div>
-    <div class="s-row"><span class="s-label">Brokerage cost basis</span><input class="s-input pct" id="cost_basis" type="number" step="1" value="75"><span style="font-size:10px;color:var(--muted)">%</span></div>
+    <div class="s-row"><span class="s-label">Brokerage cost basis</span><input class="s-input pct" id="cost_basis" type="number" step="1" value="80"><span style="font-size:10px;color:var(--muted)">%</span></div>
 
     <div class="s-sec">Brokerage Yield (% of balance)</div>
     <div class="s-row"><span class="s-label">Qualified dividend yield</span><input class="s-input pct" id="div_qual_yield" type="number" step="0.01" value="1.25"><span style="font-size:10px;color:var(--muted)">%</span></div>
-    <div class="s-row"><span class="s-label">Ordinary dividend yield</span><input class="s-input pct" id="div_ord_yield" type="number" step="0.01" value="0.4167"><span style="font-size:10px;color:var(--muted)">%</span></div>
-    <div class="s-row"><span class="s-label">Taxable interest yield</span><input class="s-input pct" id="int_taxable_yield" type="number" step="0.01" value="0.4167"><span style="font-size:10px;color:var(--muted)">%</span></div>
-    <div class="s-row"><span class="s-label">Tax-exempt interest yield</span><input class="s-input pct" id="int_exempt_yield" type="number" step="0.01" value="0.4167"><span style="font-size:10px;color:var(--muted)">%</span></div>
+    <div class="s-row"><span class="s-label">Ordinary dividend yield</span><input class="s-input pct" id="div_ord_yield" type="number" step="0.01" value="0.5"><span style="font-size:10px;color:var(--muted)">%</span></div>
+    <div class="s-row"><span class="s-label">Taxable interest yield</span><input class="s-input pct" id="int_taxable_yield" type="number" step="0.01" value="0.5"><span style="font-size:10px;color:var(--muted)">%</span></div>
+    <div class="s-row"><span class="s-label">Tax-exempt interest yield</span><input class="s-input pct" id="int_exempt_yield" type="number" step="0.01" value="0.5"><span style="font-size:10px;color:var(--muted)">%</span></div>
 
     <div class="s-sec">Spending</div>
     <div class="s-row"><span class="s-label">Annual spend (2026$)</span><input class="s-input" id="extra_spend" type="number" value="150000"></div>
 
     <div class="s-sec">Social Security (2026$)</div>
     <div class="s-row"><span class="s-label">Older SS start age</span><input class="s-input" id="ss1_start_age" type="number" value="70"></div>
-    <div class="s-row"><span class="s-label">Older SS benefit</span><input class="s-input" id="ss1_amount" type="number" value="50000"></div>
+    <div class="s-row"><span class="s-label">Older SS benefit</span><input class="s-input" id="ss1_amount" type="number" value="45000"></div>
     <div class="s-row"><span class="s-label">Younger SS start age</span><input class="s-input" id="ss2_start_age" type="number" value="67"></div>
-    <div class="s-row"><span class="s-label">Younger SS benefit</span><input class="s-input" id="ss2_amount" type="number" value="45000"></div>
+    <div class="s-row"><span class="s-label">Younger SS benefit</span><input class="s-input" id="ss2_amount" type="number" value="30000"></div>
 
     <div class="s-sec">Taxes</div>
     <div class="s-row"><span class="s-label">VA state income tax rate</span><input class="s-input pct" id="state_rate" type="number" step="0.1" value="5.75"><span style="font-size:10px;color:var(--muted)">%</span></div>
-    <div class="s-row"><span class="s-label">MFJ standard deduction</span><input class="s-input" id="std_ded" type="number" value="32200"></div>
     <div class="s-row"><span class="s-label">NIIT threshold MFJ</span><input class="s-input" id="niit_thresh" type="number" value="250000"></div>
 
     <div class="s-sec">Roth Conversion Strategy</div>
@@ -259,6 +258,8 @@ canvas#mc-chart{width:100%;height:300px;display:block}
       </select>
     </div>
     <div class="s-row"><span class="s-label">Flat annual conv. (strat 1)</span><input class="s-input" id="flat_conv" type="number" value="100000"></div>
+    <div class="s-row"><span class="s-label">Stop conversions at age</span><input class="s-input" id="conv_end_age" type="number" value="73"><span style="font-size:10px;color:var(--muted)">older sp.</span></div>
+    <div class="s-row"><span class="s-label">Bracket headroom buffer</span><input class="s-input pct" id="conv_buffer" type="number" step="1" value="0"><span style="font-size:10px;color:var(--muted)">%</span></div>
 
     <div class="s-sec">RMD</div>
     <div class="s-row"><span class="s-label">RMD start age</span><input class="s-input" id="rmd_age" type="number" value="73"></div>
@@ -270,11 +271,13 @@ canvas#mc-chart{width:100%;height:300px;display:block}
 <div id="main">
   <div id="tabs">
     <div class="tab active" data-tab="summary">Summary</div>
+    <div class="tab" data-tab="taxsnap">Tax Snapshot</div>
     <div class="tab" data-tab="montecarlo">Monte Carlo</div>
     <div class="tab" data-tab="projection">Projection</div>
   </div>
   <div id="content">
     <div id="tab-summary"    class="tab-panel"></div>
+    <div id="tab-taxsnap"    class="tab-panel" style="display:none"></div>
     <div id="tab-montecarlo" class="tab-panel" style="display:none"></div>
     <div id="tab-projection" class="tab-panel" style="display:none"></div>
   </div>
@@ -284,10 +287,13 @@ canvas#mc-chart{width:100%;height:300px;display:block}
 // ════════════════════════════════════════════════════════════════════
 // CONSTANTS
 // ════════════════════════════════════════════════════════════════════
-const MFJ_TOPS = [[23200,.10],[94300,.12],[201050,.22],[383900,.24],[487450,.32],[731200,.35]];
-const SNG_TOPS = [[11600,.10],[47150,.12],[100525,.22],[191950,.24],[243725,.32],[365600,.35]];
-const MFJ_LTCG0=94050, MFJ_LTCG15=583750;
-const SNG_LTCG0=47025, SNG_LTCG15=518900;
+// 2026 MFJ/Single ordinary brackets (IRS confirmed)
+const MFJ_TOPS = [[24800,.10],[100800,.12],[211400,.22],[403550,.24],[512450,.32],[768700,.35]];
+const SNG_TOPS = [[12400,.10],[50400,.12],[105700,.22],[201775,.24],[256225,.32],[384350,.35]];
+// 2026 LTCG thresholds MFJ: 0%=≤$96,700  15%=≤$600,050  20%=above
+const MFJ_LTCG0=96700,  MFJ_LTCG15=600050;
+// 2026 LTCG thresholds Single: 0%=≤$48,350  15%=≤$533,400  20%=above
+const SNG_LTCG0=48350,  SNG_LTCG15=533400;
 const MFJ_IRMAA=[212000,267000,334000,400000,750000];
 const SNG_IRMAA=[106000,133500,167000,200000,375000];
 const IRMAA_AMT =[0,2082,5214,8346,11478,14616];
@@ -332,8 +338,9 @@ function getA() {
     extra_spend:g('extra_spend'),
     ss1_start_age:n('ss1_start_age'), ss1_amount:g('ss1_amount'),
     ss2_start_age:n('ss2_start_age'), ss2_amount:g('ss2_amount'),
-    state_rate:p('state_rate'), std_ded:g('std_ded'), niit_thresh:g('niit_thresh'),
+    state_rate:p('state_rate'), std_ded:32200, niit_thresh:g('niit_thresh'),
     strategy:n('strategy'), flat_conv:g('flat_conv'),
+    conv_end_age:n('conv_end_age'), conv_buffer:p('conv_buffer'),
     rmd_age:n('rmd_age'),
   };
   a.ret_year = 2026 + (a.ret_age1 - a.cur_age1);
@@ -383,7 +390,7 @@ function computeYear(i, A, prevTrad, prevRoth, prevBrok, stratOverride) {
   const f    = Math.pow(1+A.inflation, yr-2026);
 
   const tops  = surv ? SNG_TOPS : MFJ_TOPS;
-  const std   = (surv ? 15000 : A.std_ded) * f;
+  const std   = (surv ? 16100 : A.std_ded) * f;
   const niit_t= (surv ? 200000 : A.niit_thresh) * f;
   const ltcg0 = (surv ? SNG_LTCG0  : MFJ_LTCG0)  * f;
   const ltcg15= (surv ? SNG_LTCG15 : MFJ_LTCG15) * f;
@@ -442,6 +449,13 @@ function computeYear(i, A, prevTrad, prevRoth, prevBrok, stratOverride) {
   const strat = stratOverride || A.strategy;
   let conv = Math.max(0, [0,ff,f10,f12,f22,f24,f32,fpre][strat] || 0);
   if (!either) conv = 0;
+  // Stop conversions after conv_end_age (based on older spouse age)
+  if (A.conv_end_age && age1 > A.conv_end_age) conv = 0;
+  // Apply bracket headroom buffer — leave a % of room unused (Dec dividend insurance)
+  if (conv > 0 && A.conv_buffer > 0) {
+    const roomUsed = [0,A.flat_conv,room10,room12,room22,room24,room32,room32][strat] || 0;
+    conv = Math.max(0, Math.min(conv, roomUsed * (1 - A.conv_buffer)));
+  }
 
   // Principal draw capped at remaining brokerage
   const pdraw = Math.max(0, Math.min(A.extra_spend * f, prevBrok - dq - dor - ti - ei));
@@ -645,9 +659,36 @@ function renderSummary(A) {
   const minTax  = Math.min(...strats.map(s=>s.tax));
   const maxPort = Math.max(...strats.map(s=>s.totalF));
 
+  // Conversion window stats
+  const windowRows = rows.filter(r => r.conv > 0);
+  const windowFirst = windowRows[0];
+  const windowLast  = windowRows[windowRows.length - 1];
+  const windowTax   = windowRows.reduce((s,r) => s + r.total_tax, 0);
+  const windowTaxOnConv = windowRows.reduce((s,r) => {
+    // Approximate tax attributable to conversion: marginal rate × conv amount
+    return s + r.conv * r.marg;
+  }, 0);
+  const avgConv   = windowRows.length ? windowRows.reduce((s,r)=>s+r.conv,0)/windowRows.length : 0;
+  const avgMarg   = windowRows.length ? windowRows.reduce((s,r)=>s+r.marg,0)/windowRows.length : 0;
+  const avgEffTax = windowRows.length ? windowRows.reduce((s,r)=>s+r.eff,0)/windowRows.length  : 0;
+
   let html = `<div class="page-title">Summary</div>
 <div class="page-sub">Lifetime totals, milestones &amp; strategy comparison — all live</div>
 <div class="sum-grid">
+
+<div class="sum-card" style="border-color:#2E75B6;border-width:2px">
+  <h3 style="color:var(--blue)">Conversion Window — ${STRAT_NAMES[A.strategy]}</h3>
+  ${windowRows.length === 0 ? '<div class="sum-row"><span class="lbl" style="color:var(--muted)">No conversions under current strategy / age limit</span></div>' : `
+  <div class="sum-row"><span class="lbl">Active years</span><span class="val">${windowFirst?.yr}–${windowLast?.yr} (${windowRows.length} yrs)</span></div>
+  <div class="sum-row"><span class="lbl">Older spouse age range</span><span class="val">${windowFirst?.age1}–${windowLast?.age1}</span></div>
+  <div class="sum-row"><span class="lbl">Avg annual conversion</span><span class="val">${fmt(avgConv)}</span></div>
+  <div class="sum-row"><span class="lbl">Total converted</span><span class="val">${fmt(totConv)}</span></div>
+  <div class="sum-row"><span class="lbl">Avg marginal fed rate during window</span><span class="val">${(avgMarg*100).toFixed(0)}%</span></div>
+  <div class="sum-row"><span class="lbl">Avg effective total rate during window</span><span class="val">${(avgEffTax*100).toFixed(1)}%</span></div>
+  <div class="sum-row"><span class="lbl">Est. fed tax on conversions</span><span class="val red">${fmt(windowTaxOnConv)}</span></div>
+  <div class="sum-row"><span class="lbl">Total tax during window years</span><span class="val red">${fmt(windowTax)}</span></div>
+  `}
+</div>
 
 <div class="sum-card">
   <h3>Retirement Snapshot</h3>
@@ -781,7 +822,7 @@ function mcSimulate(returnSeq, A) {
     const f    = Math.pow(1 + A.inflation, yr - 2026);   // nominal inflation factor from 2026
     const surv = !al1 && al2;
     const tops = surv ? SNG_TOPS : MFJ_TOPS;
-    const std  = (surv ? 15000 : A.std_ded) * f;
+    const std  = (surv ? 16100 : A.std_ded) * f;
     const niit_t  = (surv ? 200000 : A.niit_thresh) * f;
     const ltcg0   = (surv ? SNG_LTCG0  : MFJ_LTCG0)  * f;
     const ltcg15  = (surv ? SNG_LTCG15 : MFJ_LTCG15) * f;
@@ -830,6 +871,13 @@ function mcSimulate(returnSeq, A) {
       else if (strat === 6) conv = Math.min(room(bkt32), trad);
       else if (strat === 7) conv = age1 < A.rmd_age ? Math.min(room(bkt32), trad) : 0;
       conv = Math.max(0, conv);
+    }
+    // Stop conversions after conv_end_age
+    if (A.conv_end_age && age1 > A.conv_end_age) conv = 0;
+    // Bracket headroom buffer
+    if (conv > 0 && A.conv_buffer > 0) {
+      const roomUsed = [0,A.flat_conv,room(bkt10),room(bkt12),room(bkt22),room(bkt24),room(bkt32),room(bkt32)][strat] || 0;
+      conv = Math.max(0, Math.min(conv, roomUsed * (1 - A.conv_buffer)));
     }
 
     // Principal draw — capped at remaining brokerage (nominal spend target)
@@ -1166,6 +1214,7 @@ function updateAll() {
   $('ret_year_disp').textContent = A.ret_year;
   if (activeTab === 'projection') renderProjection(A);
   else if (activeTab === 'summary') renderSummary(A);
+  else if (activeTab === 'taxsnap') renderTaxSnap(A);
   else if (activeTab === 'montecarlo') {
     if (mcResults) { mcResults = null; }
     if (!mcRunning) renderMCPlaceholder();
@@ -1193,6 +1242,306 @@ if (didRestore) {
 
 // Initial render
 updateAll();
+
+// ════════════════════════════════════════════════════════════════════
+// RENDER TAX SNAPSHOT TAB  — current-year detailed tax breakdown
+// ════════════════════════════════════════════════════════════════════
+function renderTaxSnap(A, snapYrOverride) {
+  // ── helpers ──────────────────────────────────────────────────────
+  const fmt2 = v => v == null || isNaN(v) ? '—' : '$' + Math.abs(Math.round(v)).toLocaleString();
+  const fmtP = v => (v * 100).toFixed(1) + '%';
+
+  // ── year selector ─────────────────────────────────────────────────
+  // Read from the in-tab input if it exists, else use ret_year
+  const inputEl = document.getElementById('snap_year_input');
+  const SNAP_YR_RAW = snapYrOverride != null ? snapYrOverride
+                    : inputEl ? parseInt(inputEl.value) || A.ret_year
+                    : A.ret_year;
+  const SNAP_YR = Math.max(A.ret_year, Math.min(SNAP_YR_RAW, A.ret_year + NYRS - 1));
+  const snapIdx = SNAP_YR - A.ret_year;   // index into projection (0-based)
+
+  // Run projection up to snapIdx to get correct balances for that year
+  let trad = A.trad, roth = A.roth, brok = A.brok;
+  let yrData = null;
+  for (let i = 0; i <= snapIdx; i++) {
+    yrData = computeYear(i, A, trad, roth, brok, null);
+    trad = yrData.trad; roth = yrData.roth; brok = yrData.brok;
+  }
+  const yr1 = yrData;  // the computed row for SNAP_YR
+
+  const f    = Math.pow(1 + A.inflation, SNAP_YR - 2026);
+  const tops = yr1.surv ? SNG_TOPS : MFJ_TOPS;
+  const std  = (yr1.surv ? 16100 : A.std_ded) * f;
+  const ltcg15_thresh = (yr1.surv ? SNG_LTCG15 : MFJ_LTCG15) * f;
+  const ltcg0_thresh  = (yr1.surv ? SNG_LTCG0  : MFJ_LTCG0)  * f;
+
+  const ti2    = Math.max(0, yr1.ord_inc - std);   // taxable ordinary income
+  const capInc = yr1.cap_inc;
+
+  // Build bracket slices
+  const slices = [];
+  let prev = 0;
+  for (const [top, rate] of tops) {
+    const topN = top * f;
+    const inBracket = Math.max(0, Math.min(ti2, topN) - prev);
+    if (inBracket > 0 || prev < ti2)
+      slices.push({ rate, topN, inBracket, tax: inBracket * rate });
+    prev = topN;
+    if (ti2 <= topN) break;
+  }
+  if (ti2 > tops[tops.length-1][0]*f) {
+    const inBracket = ti2 - tops[tops.length-1][0]*f;
+    slices.push({ rate: 0.37, topN: Infinity, inBracket, tax: inBracket * 0.37 });
+  }
+  // Only show non-zero slices
+  const activeSlices = slices.filter(s => s.inBracket > 0);
+
+  // LTCG breakdown
+  const ltcg_base = ti2;
+  const ltcg_i0   = Math.max(0, Math.min(capInc, Math.max(0, ltcg0_thresh - ltcg_base)));
+  const ltcg_i15  = Math.max(0, Math.min(capInc - ltcg_i0, Math.max(0, ltcg15_thresh - Math.max(ltcg_base, ltcg0_thresh))));
+  const ltcg_i20  = Math.max(0, capInc - ltcg_i0 - ltcg_i15);
+  const headroom  = Math.max(0, ltcg15_thresh - ltcg_base - capInc);
+  const ltcgRate  = ltcg_i20 > 0 ? '20%' : ltcg_i15 > 0 ? '15%' : '0%';
+  const atRisk    = ltcg_i20 > 0 || headroom < 25000;
+
+  // Grand total check
+  const totalFed  = yr1.fed_ord + yr1.fed_ltcg + yr1.niit;
+  const totalAll  = yr1.total_tax;
+  const grossInc  = yr1.magi;
+  const effRate   = grossInc > 0 ? totalAll / grossInc : 0;
+  const margOrd   = yr1.marg;
+
+  // Stacked bar segments: [label, amount, color]
+  const barSegs = [
+    { lbl: 'Fed Ordinary',  amt: yr1.fed_ord,   color: '#1F3864' },
+    { lbl: 'Fed LTCG',      amt: yr1.fed_ltcg,  color: '#2E75B6' },
+    { lbl: 'NIIT (3.8%)',   amt: yr1.niit,      color: '#5B9BD5' },
+    { lbl: 'VA State',      amt: yr1.state_tax, color: '#C55A11' },
+    { lbl: 'IRMAA',         amt: yr1.irmaa||0,  color: '#843C0C' },
+  ].filter(s => s.amt > 0);
+  const barTotal = barSegs.reduce((s,b)=>s+b.amt, 0);
+
+  // ── HTML ─────────────────────────────────────────────────────────
+  let h = `
+<div class="page-title">Tax Snapshot — ${SNAP_YR}${SNAP_YR === A.ret_year ? " (Year 1)" : " (Year " + (snapIdx+1) + ")"}</div>
+<div class="page-sub" style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+  <span>Detailed tax breakdown using your sidebar inputs · Filing: ${yr1.surv ? 'Single' : 'MFJ'} · Strategy: ${STRAT_NAMES[A.strategy]}</span>
+  <span style="display:flex;align-items:center;gap:6px;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:4px 10px">
+    <label for="snap_year_input" style="font-size:10px;font-weight:600;color:var(--muted);white-space:nowrap">VIEW YEAR</label>
+    <input id="snap_year_input" type="number" min="${A.ret_year}" max="${A.ret_year+NYRS-1}" value="${SNAP_YR}"
+      style="width:64px;font-size:13px;font-weight:700;color:var(--navy);border:none;background:transparent;text-align:center;font-family:var(--font-mono);outline:none"
+      oninput="renderTaxSnap(window._lastA, parseInt(this.value)||${A.ret_year})">
+    <span style="font-size:10px;color:var(--muted)">(${A.ret_year}–${A.ret_year+NYRS-1})</span>
+  </span>
+  <span style="font-size:10px;color:var(--muted);font-family:var(--font-mono)">
+    Age ${yr1.age1}${yr1.al2 ? ' / '+yr1.age2 : ''} · Portfolio $${Math.round((yr1.trad+yr1.roth+yr1.brok)/1000)}K
+    (Trad $${Math.round(yr1.trad/1000)}K · Roth $${Math.round(yr1.roth/1000)}K · Brok $${Math.round(yr1.brok/1000)}K)
+  </span>
+</div>
+
+<div class="sum-grid" style="grid-template-columns:repeat(auto-fill,minmax(300px,1fr))">
+
+<!-- ── Income Sources ─────────────────────────────── -->
+<div class="sum-card" style="border-color:var(--blue);border-width:2px">
+  <h3 style="color:var(--blue)">Income Sources — ${SNAP_YR}</h3>
+  <div class="sum-row"><span class="lbl">Qualified dividends</span><span class="val">${fmt2(yr1.dq)}</span></div>
+  <div class="sum-row"><span class="lbl">Ordinary dividends</span><span class="val">${fmt2(yr1.dor)}</span></div>
+  <div class="sum-row"><span class="lbl">Taxable interest</span><span class="val">${fmt2(yr1.ti)}</span></div>
+  <div class="sum-row"><span class="lbl">Tax-exempt interest</span><span class="val" style="color:var(--green)">${fmt2(yr1.ei)}</span></div>
+  <div class="sum-row"><span class="lbl">Portfolio withdrawal (gain portion)</span><span class="val">${fmt2(yr1.pdraw > 0 ? Math.round(yr1.pdraw*(1-A.cost_basis)) : 0)}</span></div>
+  <div class="sum-row"><span class="lbl">Roth conversion</span><span class="val" style="color:var(--navy);font-weight:700">${fmt2(yr1.conv)}</span></div>
+  <div class="sum-row"><span class="lbl">RMD (if any)</span><span class="val">${fmt2(yr1.rmd)}</span></div>
+  <div class="sum-row"><span class="lbl">Social Security (taxable portion)</span><span class="val">${fmt2(yr1.ss_tax)}</span></div>
+  <div class="sum-row" style="border-top:2px solid var(--border);margin-top:4px;padding-top:6px">
+    <span class="lbl" style="font-weight:700">Total Ordinary Income</span>
+    <span class="val" style="font-size:13px">${fmt2(yr1.ord_inc)}</span>
+  </div>
+  <div class="sum-row">
+    <span class="lbl" style="font-weight:700">Total Cap Gain / Qual Div</span>
+    <span class="val" style="font-size:13px">${fmt2(capInc)}</span>
+  </div>
+  <div class="sum-row">
+    <span class="lbl" style="font-weight:700">MAGI</span>
+    <span class="val" style="font-size:14px;color:var(--navy)">${fmt2(grossInc)}</span>
+  </div>
+  <div class="sum-row">
+    <span class="lbl">Less: standard deduction (${yr1.surv?'Single':'MFJ'})</span>
+    <span class="val" style="color:var(--green)">(${fmt2(std)})</span>
+  </div>
+  <div class="sum-row">
+    <span class="lbl" style="font-weight:700">Federal Taxable Ordinary Income</span>
+    <span class="val" style="font-size:13px;color:var(--navy)">${fmt2(ti2)}</span>
+  </div>
+</div>
+
+<!-- ── Bracket Waterfall ──────────────────────────── -->
+<div class="sum-card">
+  <h3>Federal Ordinary Tax — ${SNAP_YR} Bracket Waterfall</h3>
+  ${activeSlices.map((s,i) => {
+    const isMarg = i === activeSlices.length - 1;
+    return `<div class="sum-row" style="${isMarg ? 'background:var(--amber-lt);border-radius:4px;padding:4px 4px;' : ''}">
+      <span class="lbl">${isMarg?'▶ ':''}${(s.rate*100).toFixed(0)}% bracket${isMarg?' <em style="font-size:9px;color:var(--amber)">(marginal)</em>':''}</span>
+      <span style="font-family:var(--font-mono);font-size:10px;color:var(--muted);margin:0 8px">${fmt2(s.inBracket)}</span>
+      <span class="val">${fmt2(s.tax)}</span>
+    </div>`;
+  }).join('')}
+  <div class="sum-row" style="border-top:2px solid var(--border);margin-top:4px;padding-top:6px">
+    <span class="lbl" style="font-weight:700">Total Federal Ordinary Tax</span>
+    <span class="val" style="font-size:13px;color:var(--maroon)">${fmt2(yr1.fed_ord)}</span>
+  </div>
+  <div class="sum-row">
+    <span class="lbl">Marginal rate</span>
+    <span class="val" style="font-size:13px;color:var(--amber)">${(margOrd*100).toFixed(0)}%</span>
+  </div>
+  <div class="sum-row">
+    <span class="lbl">Effective ordinary rate</span>
+    <span class="val">${yr1.ord_inc > 0 ? fmtP(yr1.fed_ord/yr1.ord_inc) : '—'}</span>
+  </div>
+</div>
+
+<!-- ── LTCG ───────────────────────────────────────── -->
+<div class="sum-card" style="${atRisk ? 'border-color:#F0A830;border-width:2px;background:#FFFBF0' : ''}">
+  <h3 style="${atRisk ? 'color:var(--amber)' : ''}">LTCG &amp; Qualified Dividends — ${SNAP_YR}</h3>
+  <div class="sum-row"><span class="lbl">LTCG / Qual Div income</span><span class="val">${fmt2(capInc)}</span></div>
+  <div class="sum-row"><span class="lbl">Ordinary taxable income (stack base)</span><span class="val">${fmt2(ti2)}</span></div>
+  <div class="sum-row"><span class="lbl">Stack base + LTCG</span><span class="val">${fmt2(ti2 + capInc)}</span></div>
+  <div class="sum-row"><span class="lbl" style="color:var(--green)">0% threshold (${yr1.surv ? "Single" : "MFJ"} ${SNAP_YR})</span><span class="val" style="color:var(--green)">$${Math.round(ltcg0_thresh).toLocaleString()}</span></div>
+  <div class="sum-row"><span class="lbl" style="color:var(--amber)">15%→20% threshold (${yr1.surv ? "Single" : "MFJ"} ${SNAP_YR})</span><span class="val" style="color:var(--amber)">$${Math.round(ltcg15_thresh).toLocaleString()}</span></div>
+  <div style="height:8px"></div>
+  <div class="sum-row"><span class="lbl">LTCG taxed at 0%</span><span class="val" style="color:var(--green)">${fmt2(ltcg_i0)}</span></div>
+  <div class="sum-row"><span class="lbl">LTCG taxed at 15%</span><span class="val">${fmt2(ltcg_i15)}</span></div>
+  <div class="sum-row"><span class="lbl">LTCG taxed at 20%</span><span class="val" style="color:${ltcg_i20>0?'var(--red)':'var(--muted)'}">${fmt2(ltcg_i20)}</span></div>
+  <div class="sum-row" style="border-top:2px solid var(--border);margin-top:4px;padding-top:6px">
+    <span class="lbl" style="font-weight:700">Total LTCG Tax</span>
+    <span class="val" style="font-size:13px;color:var(--maroon)">${fmt2(yr1.fed_ltcg)}</span>
+  </div>
+  <div class="sum-row">
+    <span class="lbl" style="font-weight:700">LTCG Rate Applied</span>
+    <span class="val" style="font-size:13px;color:${ltcg_i20>0?'var(--red)':ltcg_i15>0?'var(--amber)':'var(--green)'}">${ltcgRate}</span>
+  </div>
+  <div class="sum-row" style="background:${atRisk?'#FFEB9C':'var(--green-lt)'};border-radius:4px;padding:4px 4px;margin-top:4px">
+    <span class="lbl" style="font-weight:700">${atRisk && headroom < 25000 && headroom > 0 ? '⚠️ ' : atRisk && headroom === 0 ? '🔴 ' : '✅ '}Headroom to 20% threshold</span>
+    <span class="val" style="color:${headroom < 25000 ? 'var(--amber)' : 'var(--green)'}">${headroom > 0 ? fmt2(headroom) : 'OVER threshold'}</span>
+  </div>
+  <div style="font-size:9px;color:var(--muted);font-family:var(--font-mono);margin-top:6px;line-height:1.5">
+    Each $1 more Roth/ordinary income raises stack base $1, consuming $1 of LTCG headroom.
+  </div>
+</div>
+
+<!-- ── NIIT ───────────────────────────────────────── -->
+<div class="sum-card">
+  <h3>NIIT &amp; State Tax</h3>
+  <div class="sum-row"><span class="lbl">Net Investment Income</span><span class="val">${fmt2(yr1.cap_inc + yr1.ti)}</span></div>
+  <div class="sum-row"><span class="lbl">NIIT threshold (MFJ)</span><span class="val">${fmt2(A.niit_thresh)}</span></div>
+  <div class="sum-row"><span class="lbl">MAGI</span><span class="val">${fmt2(grossInc)}</span></div>
+  <div class="sum-row"><span class="lbl">MAGI over threshold</span><span class="val">${fmt2(Math.max(0, grossInc - A.niit_thresh))}</span></div>
+  <div class="sum-row" style="border-top:2px solid var(--border);margin-top:4px;padding-top:6px">
+    <span class="lbl" style="font-weight:700">NIIT (3.8%)</span>
+    <span class="val" style="font-size:13px;color:var(--maroon)">${fmt2(yr1.niit)}</span>
+  </div>
+  <div style="height:12px"></div>
+  <div class="sum-row"><span class="lbl">VA state taxable income</span><span class="val">${fmt2(yr1.ord_inc + capInc)}</span></div>
+  <div class="sum-row"><span class="lbl">VA flat rate</span><span class="val">${fmtP(A.state_rate)}</span></div>
+  <div class="sum-row" style="border-top:2px solid var(--border);margin-top:4px;padding-top:6px">
+    <span class="lbl" style="font-weight:700">VA State Tax</span>
+    <span class="val" style="font-size:13px;color:var(--maroon)">${fmt2(yr1.state_tax)}</span>
+  </div>
+  ${yr1.irmaa ? `<div style="height:12px"></div>
+  <div class="sum-row"><span class="lbl" style="font-weight:700">IRMAA Surcharge</span><span class="val" style="color:var(--maroon)">${fmt2(yr1.irmaa)}</span></div>` : ''}
+</div>
+
+<!-- ── Total Summary ──────────────────────────────── -->
+<div class="sum-card" style="border-color:var(--navy);border-width:2px">
+  <h3 style="color:var(--navy)">Total Tax Summary — ${SNAP_YR}</h3>
+  <div class="sum-row"><span class="lbl">Federal ordinary tax</span><span class="val red">${fmt2(yr1.fed_ord)}</span></div>
+  <div class="sum-row"><span class="lbl">Federal LTCG tax</span><span class="val red">${fmt2(yr1.fed_ltcg)}</span></div>
+  <div class="sum-row"><span class="lbl">NIIT (3.8%)</span><span class="val red">${fmt2(yr1.niit)}</span></div>
+  <div class="sum-row"><span class="lbl">VA State (${fmtP(A.state_rate)})</span><span class="val red">${fmt2(yr1.state_tax)}</span></div>
+  ${yr1.irmaa ? `<div class="sum-row"><span class="lbl">IRMAA</span><span class="val red">${fmt2(yr1.irmaa)}</span></div>` : ''}
+  <div class="sum-row" style="border-top:2px solid var(--navy);margin-top:6px;padding-top:8px">
+    <span class="lbl" style="font-weight:700;font-size:13px">TOTAL TAX BURDEN</span>
+    <span class="val" style="font-size:16px;color:var(--red)">${fmt2(totalAll)}</span>
+  </div>
+  <div class="sum-row" style="margin-top:4px">
+    <span class="lbl">Gross income (MAGI)</span>
+    <span class="val">${fmt2(grossInc)}</span>
+  </div>
+  <div class="sum-row">
+    <span class="lbl" style="font-weight:700">Overall effective rate</span>
+    <span class="val" style="font-size:14px;color:var(--navy)">${fmtP(effRate)}</span>
+  </div>
+  <div class="sum-row">
+    <span class="lbl">Marginal federal rate</span>
+    <span class="val" style="font-size:13px;color:var(--amber)">${(margOrd*100).toFixed(0)}%</span>
+  </div>
+  <div class="sum-row">
+    <span class="lbl">Marginal fed + NIIT (if NII)</span>
+    <span class="val">${((margOrd + 0.038)*100).toFixed(1)}%</span>
+  </div>
+</div>
+
+<!-- ── Stacked Bar Chart ───────────────────────────── -->
+<div class="sum-card" style="grid-column:1/-1">
+  <h3>Tax Burden by Component — ${SNAP_YR}</h3>
+  <div style="display:flex;gap:32px;align-items:flex-end;flex-wrap:wrap">
+    <!-- Dollar stacked bar -->
+    <div style="flex:1;min-width:260px">
+      <div style="font-size:10px;color:var(--muted);font-family:var(--font-mono);margin-bottom:8px">$ AMOUNT</div>
+      <div style="display:flex;height:44px;border-radius:5px;overflow:hidden;border:1px solid var(--border)">
+        ${barSegs.map(s => `<div title="${s.lbl}: ${fmt2(s.amt)}" style="width:${(s.amt/barTotal*100).toFixed(1)}%;background:${s.color};display:flex;align-items:center;justify-content:center;transition:width .4s">
+          ${s.amt/barTotal > 0.08 ? `<span style="color:#fff;font-size:9px;font-family:var(--font-mono);font-weight:600">${(s.amt/barTotal*100).toFixed(0)}%</span>` : ''}
+        </div>`).join('')}
+      </div>
+      <!-- legend -->
+      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px">
+        ${barSegs.map(s => `<div style="display:flex;align-items:center;gap:4px;font-size:10px;font-family:var(--font-mono)">
+          <div style="width:10px;height:10px;border-radius:2px;background:${s.color}"></div>
+          <span style="color:var(--muted)">${s.lbl}</span>
+          <span style="font-weight:600;color:var(--text)">${fmt2(s.amt)}</span>
+        </div>`).join('')}
+      </div>
+    </div>
+    <!-- Pct bar -->
+    <div style="flex:1;min-width:260px">
+      <div style="font-size:10px;color:var(--muted);font-family:var(--font-mono);margin-bottom:8px">% OF GROSS INCOME</div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        ${barSegs.map(s => `<div style="display:flex;align-items:center;gap:8px;font-size:10px;font-family:var(--font-mono)">
+          <div style="width:100px;color:var(--muted);text-align:right;flex-shrink:0">${s.lbl}</div>
+          <div style="flex:1;background:#F0F4FA;border-radius:3px;height:18px;overflow:hidden">
+            <div style="width:${(s.amt/grossInc*100).toFixed(1)}%;height:100%;background:${s.color};border-radius:3px;transition:width .4s"></div>
+          </div>
+          <div style="width:46px;text-align:right;font-weight:600">${fmtP(s.amt/grossInc)}</div>
+        </div>`).join('')}
+        <div style="display:flex;align-items:center;gap:8px;font-size:10px;font-family:var(--font-mono);border-top:1px solid var(--border);padding-top:4px">
+          <div style="width:100px;color:var(--navy);text-align:right;font-weight:700;flex-shrink:0">TOTAL</div>
+          <div style="flex:1;background:#F0F4FA;border-radius:3px;height:18px;overflow:hidden">
+            <div style="width:${(effRate*100).toFixed(1)}%;height:100%;background:var(--navy);border-radius:3px"></div>
+          </div>
+          <div style="width:46px;text-align:right;font-weight:700;color:var(--navy)">${fmtP(effRate)}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- end sum-grid -->
+
+<div class="note-box" style="margin-top:12px;font-size:10px">
+  📌 <strong>Headroom note:</strong> With a Roth conversion of ${fmt2(yr1.conv)} and LTCG/qual-div income of ${fmt2(capInc)}, 
+  your stack base (taxable ordinary) is ${fmt2(ti2)} vs. the $${Math.round(ltcg15_thresh).toLocaleString()} ${yr1.surv ? "Single" : "MFJ"} ${SNAP_YR} threshold. 
+  ${headroom > 0 
+    ? `You have <strong>${fmt2(headroom)}</strong> of room before any income crosses into the 20% LTCG bracket. 
+       Each extra dollar of Roth conversion <em>or</em> ordinary income consumes exactly $1 of that headroom.`
+    : `<strong style="color:var(--red)">You are over the 20% LTCG threshold.</strong> Consider reducing the Roth conversion amount.`}
+  &nbsp;|&nbsp; NIIT applies because MAGI (${fmt2(grossInc)}) exceeds the ${fmt2(A.niit_thresh)} threshold.
+</div>
+`;
+
+  $('tab-taxsnap').innerHTML = h;
+  window._lastA = A;
+}
+
 </script>
 </body>
 </html>
