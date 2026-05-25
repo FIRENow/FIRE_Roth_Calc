@@ -232,7 +232,7 @@ canvas#mc-chart{width:100%;height:300px;display:block}
     <div class="s-row"><span class="s-label">Tax-exempt interest yield</span><input class="s-input pct" id="int_exempt_yield" type="number" step="0.01" value="0.5"><span style="font-size:10px;color:var(--muted)">%</span></div>
 
     <div class="s-sec">Spending</div>
-    <div class="s-row"><span class="s-label">Annual spend (2026$)</span><input class="s-input" id="extra_spend" type="number" value="150000"></div>
+    <div class="s-row"><span class="s-label">Annual spend (2026$)</span><input class="s-input" id="extra_spend" type="number" value="200000"></div>
 
     <div class="s-sec">Social Security (2026$)</div>
     <div class="s-row"><span class="s-label">Older SS start age</span><input class="s-input" id="ss1_start_age" type="number" value="70"></div>
@@ -241,7 +241,7 @@ canvas#mc-chart{width:100%;height:300px;display:block}
     <div class="s-row"><span class="s-label">Younger SS benefit</span><input class="s-input" id="ss2_amount" type="number" value="30000"></div>
 
     <div class="s-sec">Taxes</div>
-    <div class="s-row"><span class="s-label">VA state income tax rate</span><input class="s-input pct" id="state_rate" type="number" step="0.1" value="5.75"><span style="font-size:10px;color:var(--muted)">%</span></div>
+    <div class="s-row"><span class="s-label">State income tax rate</span><input class="s-input pct" id="state_rate" type="number" step="0.1" value="5.75"><span style="font-size:10px;color:var(--muted)">%</span></div>
     <div class="s-row"><span class="s-label">NIIT threshold MFJ</span><input class="s-input" id="niit_thresh" type="number" value="250000"></div>
 
     <div class="s-sec">Roth Conversion Strategy</div>
@@ -255,14 +255,37 @@ canvas#mc-chart{width:100%;height:300px;display:block}
         <option value="5" selected>5 – Fill 24%</option>
         <option value="6">6 – Fill 32%</option>
         <option value="7">7 – Pre-RMD 32%</option>
+        <option value="8">8 – 2-Period Flat</option>
       </select>
     </div>
-    <div class="s-row"><span class="s-label">Flat annual conv. (strat 1)</span><input class="s-input" id="flat_conv" type="number" value="100000"></div>
-    <div class="s-row"><span class="s-label">Stop conversions at age</span><input class="s-input" id="conv_end_age" type="number" value="73"><span style="font-size:10px;color:var(--muted)">older sp.</span></div>
+    <div class="s-row"><span class="s-label">Flat annual conv. (strat 1, 2026$)</span><input class="s-input" id="flat_conv" type="number" value="100000"></div>
+    <div class="s-row"><span class="s-label">Late conv. after RMD age (strat 8, 2026$)</span><input class="s-input" id="flat_conv_late" type="number" value="150000"></div>
+    <div class="s-row" style="flex-direction:column;align-items:stretch;gap:6px;padding:8px 14px;background:#F0F8FF;border-left:3px solid var(--blue)">
+      <button id="opt-btn" onclick="runOptimizer()" style="background:var(--blue);color:#fff;border:none;border-radius:4px;padding:5px 10px;font-size:11px;font-weight:600;font-family:var(--font-mono);cursor:pointer;letter-spacing:.3px">⚡ Optimize Conversion Amount</button>
+      <div id="opt-result" style="font-size:10px;font-family:var(--font-mono);color:var(--navy);line-height:1.6;display:none"></div>
+    </div>
+    <div class="s-row"><span class="s-label">Stop conversions at age</span><input class="s-input" id="conv_end_age" type="number" value="75"><span style="font-size:10px;color:var(--muted)">older sp.</span></div>
     <div class="s-row"><span class="s-label">Bracket headroom buffer</span><input class="s-input pct" id="conv_buffer" type="number" step="1" value="0"><span style="font-size:10px;color:var(--muted)">%</span></div>
 
     <div class="s-sec">RMD</div>
-    <div class="s-row"><span class="s-label">RMD start age</span><input class="s-input" id="rmd_age" type="number" value="73"></div>
+    <div class="s-row"><span class="s-label">RMD start age</span><input class="s-input" id="rmd_age" type="number" value="75"></div>
+
+    <div class="s-sec">Roth Draw Strategy</div>
+    <div class="s-row"><span class="s-label">Roth draw delay (yrs after 1st conversion)</span><input class="s-input" id="roth_draw_delay" type="number" value="5"></div>
+    <div class="s-row">
+      <span class="s-label">Draw mode</span>
+      <select class="s-input" id="roth_draw_mode" style="width:140px">
+        <option value="gap">Gap fill only</option>
+        <option value="primary" selected>Primary — Roth first</option>
+      </select>
+    </div>
+    <div class="s-row" style="background:#EAF4EA;border-left:3px solid #1F6438;padding-left:11px">
+      <span class="s-label" style="font-size:10px;color:#1F6438;line-height:1.5">
+        Roth draws begin this many years after the first conversion year. Set to 0 to draw immediately.<br>
+        <strong>Primary:</strong> Roth funds all spending first (tax-free, no MAGI). Brokerage keeps surplus.<br>
+        <strong>Gap fill:</strong> Brokerage first; Roth only covers shortfall.
+      </span>
+    </div>
 
   </div>
 </div>
@@ -298,7 +321,7 @@ const MFJ_IRMAA=[212000,267000,334000,400000,750000];
 const SNG_IRMAA=[106000,133500,167000,200000,375000];
 const IRMAA_AMT =[0,2082,5214,8346,11478,14616];
 const NYRS = 55;
-const STRAT_NAMES = ['','1 – Flat','2 – Fill 10%','3 – Fill 12%','4 – Fill 22%','5 – Fill 24%','6 – Fill 32%','7 – Pre-RMD 32%'];
+const STRAT_NAMES = ['','1 – Flat','2 – Fill 10%','3 – Fill 12%','4 – Fill 22%','5 – Fill 24%','6 – Fill 32%','7 – Pre-RMD 32%','8 – 2-Period Flat'];
 
 const SP500_REAL = [
    0.1162,-0.0856, 0.3681,-0.1012,-0.2450,-0.4391,-0.0874, 0.5356, 0.0153,-0.0507,
@@ -339,9 +362,11 @@ function getA() {
     ss1_start_age:n('ss1_start_age'), ss1_amount:g('ss1_amount'),
     ss2_start_age:n('ss2_start_age'), ss2_amount:g('ss2_amount'),
     state_rate:p('state_rate'), std_ded:32200, niit_thresh:g('niit_thresh'),
-    strategy:n('strategy'), flat_conv:g('flat_conv'),
+    strategy:n('strategy'), flat_conv:g('flat_conv'), flat_conv_late:g('flat_conv_late') ?? g('flat_conv') ?? 0,
     conv_end_age:n('conv_end_age'), conv_buffer:p('conv_buffer'),
     rmd_age:n('rmd_age'),
+    roth_draw_delay: n('roth_draw_delay') ?? 5,
+    roth_draw_mode: document.getElementById('roth_draw_mode')?.value || 'primary',
   };
   a.ret_year = 2026 + (a.ret_age1 - a.cur_age1);
   return a;
@@ -378,7 +403,7 @@ function marginalRate(ti, tops, f) {
 // ════════════════════════════════════════════════════════════════════
 // CORE SIMULATION — one year
 // ════════════════════════════════════════════════════════════════════
-function computeYear(i, A, prevTrad, prevRoth, prevBrok, stratOverride) {
+function computeYear(i, A, prevTrad, prevRoth, prevBrok, stratOverride, first_conv_yr) {
   const ret_age1 = A.ret_age1, ret_age2 = A.ret_age2;
   const age1 = ret_age1 + i;
   const age2  = ret_age2 + i;
@@ -438,7 +463,8 @@ function computeYear(i, A, prevTrad, prevRoth, prevBrok, stratOverride) {
   const room24 = Math.max(0, bkt_ceil(sng24,mfj24) + std - rmd - other_ord);
   const room32 = Math.max(0, bkt_ceil(sng32,mfj32) + std - rmd - other_ord);
 
-  const ff  = either ? Math.min(A.flat_conv, prevTrad) : 0;
+  const flat_conv_nom = A.flat_conv * f;  // inflate input (2026$) to nominal for this year
+  const ff  = either ? Math.min(flat_conv_nom, prevTrad) : 0;
   const f10 = either ? Math.min(room10, prevTrad) : 0;
   const f12 = either ? Math.min(room12, prevTrad) : 0;
   const f22 = either ? Math.min(room22, prevTrad) : 0;
@@ -446,19 +472,48 @@ function computeYear(i, A, prevTrad, prevRoth, prevBrok, stratOverride) {
   const f32 = either ? Math.min(room32, prevTrad) : 0;
   const fpre= (either && age1 < A.rmd_age) ? Math.min(room32, prevTrad) : 0;
 
+  // Strategy 8: two-period flat — flat_conv before RMD age, flat_conv_late after
+  const flat_conv_late_nom = (A.flat_conv_late ?? A.flat_conv) * f;
+  const f2p = either ? Math.min(age1 < A.rmd_age ? flat_conv_nom : flat_conv_late_nom, prevTrad) : 0;
+
   const strat = stratOverride || A.strategy;
-  let conv = Math.max(0, [0,ff,f10,f12,f22,f24,f32,fpre][strat] || 0);
+  let conv = Math.max(0, [0,ff,f10,f12,f22,f24,f32,fpre,f2p][strat] || 0);
   if (!either) conv = 0;
-  // Stop conversions after conv_end_age (based on older spouse age)
-  if (A.conv_end_age && age1 > A.conv_end_age) conv = 0;
+  // Stop conversions after conv_end_age (0 = no limit)
+  if (A.conv_end_age > 0 && age1 > A.conv_end_age) conv = 0;
   // Apply bracket headroom buffer — leave a % of room unused (Dec dividend insurance)
   if (conv > 0 && A.conv_buffer > 0) {
-    const roomUsed = [0,A.flat_conv,room10,room12,room22,room24,room32,room32][strat] || 0;
+    const roomUsed = [0,flat_conv_nom,room10,room12,room22,room24,room32,room32][strat] || 0;
     conv = Math.max(0, Math.min(conv, roomUsed * (1 - A.conv_buffer)));
   }
 
-  // Principal draw capped at remaining brokerage
-  const pdraw = Math.max(0, Math.min(A.extra_spend * f, prevBrok - dq - dor - ti - ei));
+  // ── Spending draw logic ──────────────────────────────────────────
+  // Both modes: spending gap = max(0, spend - ss - brok_yield)
+  // 'primary': fill gap from Roth first, then brokerage principal
+  // 'gap':     fill gap from brokerage principal first, then Roth
+  // Roth draws open only after (a) at least one conversion has been made AND
+  // (b) roth_draw_delay years have elapsed since that first conversion year.
+  // If no conversion has ever occurred, roth_eligible stays false.
+  const roth_draw_start_yr = first_conv_yr !== null ? first_conv_yr + A.roth_draw_delay : null;
+  const roth_eligible = either && roth_draw_start_yr !== null && yr >= roth_draw_start_yr;
+  const spend_target  = A.extra_spend * f;
+  const brok_yield    = dq + dor + ti + ei;
+  const brok_avail    = Math.max(0, prevBrok - brok_yield);
+  const ss_income     = s1 + s2;
+  const spend_gap     = Math.max(0, spend_target - ss_income - brok_yield);
+  let pdraw, roth_draw;
+  if (A.roth_draw_mode === 'primary' && roth_eligible) {
+    // Roth covers the gap first, brokerage principal covers any remainder
+    roth_draw = Math.min(spend_gap, prevRoth);
+    pdraw     = Math.min(Math.max(0, spend_gap - roth_draw), brok_avail);
+  } else {
+    // Brokerage principal covers the gap first, Roth covers any remainder
+    pdraw     = Math.min(spend_gap, brok_avail);
+    roth_draw = roth_eligible
+      ? Math.min(Math.max(0, spend_gap - pdraw), prevRoth) : 0;
+  }
+  pdraw     = round(Math.max(0, pdraw));
+  roth_draw = round(Math.max(0, roth_draw));
   const pdraw_gain = pdraw * (1 - A.cost_basis);
 
   // SS taxable
@@ -475,14 +530,6 @@ function computeYear(i, A, prevTrad, prevRoth, prevBrok, stratOverride) {
     ss_tax = Math.max(0, ss_tax);
   }
   ss_tax = round(ss_tax);
-
-  // Roth draw
-  const non_roth = dq + dor + ti + ei + pdraw + s1 + s2;
-  const roth_draw = (age1 >= 60)
-    ? Math.max(0, Math.min(A.extra_spend * f - non_roth, prevRoth))
-    : 0;
-
-  // Income totals
   const ord_inc  = rmd + conv + dor + ti + ss_tax;
   const cap_inc  = dq + round(pdraw_gain);
   const magi     = ord_inc + cap_inc + ei;
@@ -495,8 +542,8 @@ function computeYear(i, A, prevTrad, prevRoth, prevBrok, stratOverride) {
   // NIIT
   const niit_inc = cap_inc + ti;
   const niit     = round(Math.min(niit_inc, Math.max(0, magi - ei - niit_t)) * 0.038);
-  // VA state
-  const state_tax= round((ord_inc + cap_inc) * A.state_rate);
+  // VA state — taxes ALL income including tax-exempt interest (munis taxable at VA state level)
+  const state_tax= round((ord_inc + cap_inc + ei) * A.state_rate);
   // IRMAA
   const on_med = surv
     ? (age2>=65 && al2 ? 1 : 0)
@@ -533,9 +580,11 @@ function computeYear(i, A, prevTrad, prevRoth, prevBrok, stratOverride) {
 // ════════════════════════════════════════════════════════════════════
 function runProjection(A, stratOverride) {
   let trad=A.trad, roth=A.roth, brok=A.brok;
+  let first_conv_yr = null;  // set the first year a conversion > 0 actually occurs
   const rows = [];
   for (let i=0; i<NYRS; i++) {
-    const row = computeYear(i, A, trad, roth, brok, stratOverride);
+    const row = computeYear(i, A, trad, roth, brok, stratOverride, first_conv_yr);
+    if (row.conv > 0 && first_conv_yr === null) first_conv_yr = row.yr;
     rows.push(row);
     trad = row.trad; roth = row.roth; brok = row.brok;
     if (!row.al1 && !row.al2) break;
@@ -642,18 +691,26 @@ function renderSummary(A) {
   const retYr = A.ret_year;
   const retAge2 = A.cur_age2 + (retYr - 2026);
 
-  // Strategy comparison
+  // Strategy comparison — run each strategy WITHOUT conv_end_age so we compare
+  // strategy merit alone. All taxes including RMDs are fully simulated year-by-year
+  // so final balances already reflect all tax payments made during the projection.
+  // Strategy comparison: disable Roth draws so draw behaviour doesn't contaminate
+  // the conversion-merit comparison. Each strategy is judged purely on how well
+  // it manages RMDs and conversion tax — not on when Roth funds get spent.
+  const A_cmp = Object.assign({}, A);  // use sidebar settings as-is so strategy table matches Projection tab
   const strats = [];
-  for (let s=1; s<=7; s++) {
-    const sr = runProjection(A, s);
+  for (let s=1; s<=8; s++) {
+    const sr = runProjection(A_cmp, s);
+    const tradF = finalBalance(sr,'trad');
+    const rothF = finalBalance(sr,'roth');
+    const brokF = finalBalance(sr,'brok');
     strats.push({
       name: STRAT_NAMES[s],
       tax:  sr.reduce((a,r)=>a+r.total_tax,0),
       conv: sr.reduce((a,r)=>a+r.conv,0),
-      tradF: finalBalance(sr,'trad'),
-      rothF: finalBalance(sr,'roth'),
-      brokF: finalBalance(sr,'brok'),
-      totalF: finalBalance(sr,'trad')+finalBalance(sr,'roth')+finalBalance(sr,'brok'),
+      rmd:  sr.reduce((a,r)=>a+r.rmd,0),
+      tradF, rothF, brokF,
+      totalF: tradF + rothF + brokF,
     });
   }
   const minTax  = Math.min(...strats.map(s=>s.tax));
@@ -672,8 +729,44 @@ function renderSummary(A) {
   const avgMarg   = windowRows.length ? windowRows.reduce((s,r)=>s+r.marg,0)/windowRows.length : 0;
   const avgEffTax = windowRows.length ? windowRows.reduce((s,r)=>s+r.eff,0)/windowRows.length  : 0;
 
+  let stratHtml = `
+<div style="margin-bottom:20px">
+<div style="font-size:10px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);font-family:var(--font-mono);margin-bottom:6px">
+  STRATEGY COMPARISON — all 7 strategies at full run &nbsp;·&nbsp; Roth draw: ${A.roth_draw_mode === 'primary' ? 'Primary' : 'Gap fill'} | Draw delay: ${A.roth_draw_delay} yr(s) after first conversion
+</div>
+<div class="tbl-wrap">
+<table class="strat-table">
+<thead><tr>
+  <th style="text-align:left;min-width:190px">Strategy</th>
+  <th>Lifetime Tax</th><th>Total Conv</th><th>Total RMD</th>
+  <th>Final Trad</th><th>Final Roth</th><th>Final Brok</th><th>Final Total</th>
+</tr></thead><tbody>`;
+
+  strats.forEach((s,i) => {
+    const isMinTax  = s.tax    === minTax;
+    const isMaxPort = s.totalF === maxPort;
+    const isCurrent = (i+1)   === A.strategy;
+    const rowCls = (isMinTax||isMaxPort) ? 'best-row' : (i%2===0?'strip':'');
+    stratHtml += `<tr class="${rowCls}">
+<td>${s.name} ${isCurrent?'<span class="badge badge-green">current</span>':''} ${isMinTax?'<span class="badge badge-amber">min tax</span>':''} ${isMaxPort?'<span class="badge badge-green">max portfolio</span>':''}</td>
+<td>${fmt(s.tax)}</td><td>${fmt(s.conv)}</td><td>${fmt(s.rmd)}</td>
+<td>${fmt(s.tradF)}</td><td>${fmt(s.rothF)}</td><td>${fmt(s.brokF)}</td>
+<td style="font-weight:700">${fmt(s.totalF)}</td>
+</tr>`;
+  });
+
+  const minTaxStrat  = strats.find(s=>s.tax===minTax);
+  const maxPortStrat = strats.find(s=>s.totalF===maxPort);
+  stratHtml += `</tbody></table></div>
+<div class="note-box" style="margin-top:8px">
+  <strong>Lowest lifetime tax:</strong> ${minTaxStrat?.name} &nbsp;|&nbsp;
+  <strong>Largest final portfolio:</strong> ${maxPortStrat?.name}
+</div>
+</div>`;
+
   let html = `<div class="page-title">Summary</div>
-<div class="page-sub">Lifetime totals, milestones &amp; strategy comparison — all live</div>
+<div class="page-sub">Strategy comparison &amp; lifetime totals — updates live with every input change</div>`
+  + stratHtml + `
 <div class="sum-grid">
 
 <div class="sum-card" style="border-color:#2E75B6;border-width:2px">
@@ -742,38 +835,81 @@ function renderSummary(A) {
 </div>
 
 </div>
+`;
 
-<div style="margin-top:24px">
-<div style="font-size:10px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);font-family:var(--font-mono);margin-bottom:10px">
-  STRATEGY COMPARISON — all 7 strategies vs your current assumptions
-</div>
-<div class="tbl-wrap">
-<table class="strat-table">
-<thead><tr>
-  <th style="text-align:left;min-width:180px">Strategy</th>
-  <th>Lifetime Tax</th><th>Total Converted</th>
-  <th>Final Trad</th><th>Final Roth</th><th>Final Brok</th><th>Final Total</th>
-</tr></thead><tbody>`;
-
-  strats.forEach((s,i) => {
-    const isMinTax  = s.tax   === minTax;
-    const isMaxPort = s.totalF=== maxPort;
-    const isCurrent = (i+1) === A.strategy;
-    const rowCls = (isMinTax||isMaxPort) ? 'best-row' : (i%2===0?'strip':'');
-    html += `<tr class="${rowCls}">
-<td>${s.name} ${isCurrent?'<span class="badge badge-green">current</span>':''} ${isMinTax?'<span class="badge badge-amber">min tax</span>':''} ${isMaxPort?'<span class="badge badge-green">max portfolio</span>':''}</td>
-<td>${fmt(s.tax)}</td><td>${fmt(s.conv)}</td>
-<td>${fmt(s.tradF)}</td><td>${fmt(s.rothF)}</td><td>${fmt(s.brokF)}</td>
-<td style="font-weight:700">${fmt(s.totalF)}</td>
-</tr>`;
-  });
-
-  const minTaxStrat = strats.find(s=>s.tax===minTax);
-  const maxPortStrat= strats.find(s=>s.totalF===maxPort);
-  html += `</tbody></table></div>
-<div class="note-box" style="margin-top:10px">
-  <strong>Lowest lifetime tax:</strong> ${minTaxStrat?.name} &nbsp;|&nbsp;
-  <strong>Largest final portfolio:</strong> ${maxPortStrat?.name}
+  // ── Draw mode comparison card ──────────────────────────────────────
+  // Run both draw modes under the current strategy so user can compare
+  // final portfolio and lifetime tax side-by-side — not just lifetime tax alone.
+  const A_gap  = Object.assign({}, A, { roth_draw_mode: 'gap' });
+  const A_prim = Object.assign({}, A, { roth_draw_mode: 'primary' });
+  const rows_gap  = runProjection(A_gap,  null);
+  const rows_prim = runProjection(A_prim, null);
+  const port_gap  = finalBalance(rows_gap,  'total');
+  const port_prim = finalBalance(rows_prim, 'total');
+  const tax_gap   = rows_gap.reduce( (s,r)=>s+r.total_tax, 0);
+  const tax_prim  = rows_prim.reduce((s,r)=>s+r.total_tax, 0);
+  const portWinner = port_gap >= port_prim ? 'gap' : 'primary';
+  const taxWinner  = tax_gap  <= tax_prim  ? 'gap' : 'primary';
+  const gapColor  = m => m === 'gap'  ? 'var(--green)' : 'var(--muted)';
+  const primColor = m => m === 'primary' ? 'var(--green)' : 'var(--muted)';
+  html += `
+<div class="sum-card" style="margin-top:16px;border-color:var(--blue);border-width:2px">
+  <h3 style="color:var(--blue)">Draw Mode Comparison — ${STRAT_NAMES[A.strategy]}</h3>
+  <table style="width:100%;font-size:11px;font-family:var(--font-mono);border-collapse:collapse">
+    <thead>
+      <tr>
+        <th style="text-align:left;padding:4px 6px;background:var(--navy);color:#fff;font-weight:500">Metric</th>
+        <th style="text-align:right;padding:4px 6px;background:var(--navy);color:#fff;font-weight:500">Gap Fill (brok first)</th>
+        <th style="text-align:right;padding:4px 6px;background:var(--navy);color:#fff;font-weight:500">Primary (Roth first)</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="strip">
+        <td style="padding:4px 6px;color:var(--muted)">Lifetime tax</td>
+        <td style="padding:4px 6px;text-align:right;color:${gapColor(taxWinner)};font-weight:${taxWinner==='gap'?'700':'400'}">${fmt(tax_gap)}${taxWinner==='gap'?' ✅':''}</td>
+        <td style="padding:4px 6px;text-align:right;color:${primColor(taxWinner)};font-weight:${taxWinner==='primary'?'700':'400'}">${fmt(tax_prim)}${taxWinner==='primary'?' ✅':''}</td>
+      </tr>
+      <tr>
+        <td style="padding:4px 6px;color:var(--muted)">Final portfolio</td>
+        <td style="padding:4px 6px;text-align:right;color:${gapColor(portWinner)};font-weight:${portWinner==='gap'?'700':'400'}">${fmt(port_gap)}${portWinner==='gap'?' ✅':''}</td>
+        <td style="padding:4px 6px;text-align:right;color:${primColor(portWinner)};font-weight:${portWinner==='primary'?'700':'400'}">${fmt(port_prim)}${portWinner==='primary'?' ✅':''}</td>
+      </tr>
+      <tr class="strip">
+        <td style="padding:4px 6px;color:var(--muted)">Final Roth</td>
+        <td style="padding:4px 6px;text-align:right">${fmt(finalBalance(rows_gap,'roth'))}</td>
+        <td style="padding:4px 6px;text-align:right">${fmt(finalBalance(rows_prim,'roth'))}</td>
+      </tr>
+      <tr>
+        <td style="padding:4px 6px;color:var(--muted)">Final brokerage</td>
+        <td style="padding:4px 6px;text-align:right">${fmt(finalBalance(rows_gap,'brok'))}</td>
+        <td style="padding:4px 6px;text-align:right">${fmt(finalBalance(rows_prim,'brok'))}</td>
+      </tr>
+    </tbody>
+  </table>
+  <div style="font-size:9px;color:var(--muted);font-family:var(--font-mono);margin-top:8px;line-height:1.5">
+    ${(() => {
+      const portDiff    = Math.abs(port_gap - port_prim);
+      const taxDiff     = Math.abs(tax_gap  - tax_prim);
+      const portDiffPct = port_gap > 0 ? portDiff / port_gap : 0;
+      const yr0gap      = rows_gap[0]  || {};
+      const spendGapAmt = (yr0gap.pdraw || 0) + (yr0gap.roth_draw || 0);
+      if (portDiffPct < 0.005) {
+        return `<strong>Draw mode is effectively neutral for this portfolio.</strong> ` +
+          `Year-1 spending gap after yield is ~${fmt(spendGapAmt)}, which is small relative to portfolio size. ` +
+          `Primary preserves more brokerage principal but that principal generates more taxable yield each year, ` +
+          `offsetting the apparent tax saving — final portfolios converge. ` +
+          `Lifetime tax differs by ${fmt(taxDiff)} but is offset by equivalent extra brokerage compounding. ` +
+          `<strong>Gap Fill is simpler to manage and equally effective here.</strong>`;
+      } else if (portWinner === taxWinner) {
+        return `Both metrics agree: <strong>${portWinner === 'gap' ? 'Gap Fill' : 'Primary'}</strong> wins ` +
+          `(${fmt(portDiff)} more portfolio, ${fmt(taxDiff)} less lifetime tax).`;
+      } else {
+        return `⚠️ Metrics split: <strong>${taxWinner==='gap'?'Gap Fill':'Primary'}</strong> pays ${fmt(taxDiff)} less tax ` +
+          `but <strong>${portWinner==='gap'?'Gap Fill':'Primary'}</strong> ends with ${fmt(portDiff)} more wealth — ` +
+          `the tax saving is more than offset by compounding differences.`;
+      }
+    })()}
+  </div>
 </div>`;
 
   html += `<div class="sum-card" style="margin-top:16px">
@@ -781,13 +917,15 @@ function renderSummary(A) {
   [
     '1. Projection starts at older spouse retirement year. Ages, milestones, and inflation all flow from that start year.',
     '2. Conversion room = BracketTop + StdDed - RMD - OrdDiv - TaxInt - SS taxable. Fills ordinary taxable income to ceiling.',
-    '3. VA taxes ALL income at 5.75%: ordinary, qualified dividends, capital gains, taxable interest.',
-    '4. Tax-exempt interest excluded from income tax but counts toward IRMAA MAGI.',
+    '3. VA taxes ALL income at 5.75% including tax-exempt interest (munis are taxable at VA state level).',
+    '4. Tax-exempt interest excluded from federal income tax but counts toward IRMAA MAGI.',
     '5. After older spouse reaches life expectancy, model switches to Single filer.',
     '6. IRMAA looks back 2 years: income at age 63 sets surcharge at 65.',
-    '7. This model is for planning purposes only. Consult a CPA/CFP before executing Roth conversions.',
+    '7. SS survivor benefit: after older spouse passes, younger receives MAX(ss1, ss2) — steps up to higher benefit.',
+    '8. Roth draw mode: Primary draws from Roth first (tax-free); Gap fill draws brokerage first.',
+    '9. This model is for planning purposes only. Consult a CPA/CFP before executing Roth conversions.',
   ].forEach(n => { html += `<div class="sum-row"><span class="lbl" style="font-size:10px;color:var(--muted)">${n}</span></div>`; });
-  html += '</div></div>';
+  html += '</div>';
 
   $('tab-summary').innerHTML = html;
 }
@@ -807,6 +945,7 @@ function mcSimulate(returnSeq, A) {
   let trad = A.trad, roth = A.roth, brok = A.brok;
   const planYrs = A.life2 - A.ret_age2 + 1;
   let brok_dep = null;
+  let mc_first_conv_yr = null;  // first year a conversion actually occurs
   const portfolio = [];
 
   for (let i = 0; i < Math.min(planYrs, returnSeq.length); i++) {
@@ -863,7 +1002,8 @@ function mcSimulate(returnSeq, A) {
     const either = al1 || al2;
     let conv = 0;
     if (either) {
-      if      (strat === 1) conv = Math.min(A.flat_conv, trad);
+      if      (strat === 1) conv = Math.min(A.flat_conv * f, trad);
+      else if (strat === 8) conv = Math.min((age1 < A.rmd_age ? A.flat_conv : (A.flat_conv_late ?? A.flat_conv)) * f, trad);
       else if (strat === 2) conv = Math.min(room(bkt10), trad);
       else if (strat === 3) conv = Math.min(room(bkt12), trad);
       else if (strat === 4) conv = Math.min(room(bkt22), trad);
@@ -872,16 +1012,35 @@ function mcSimulate(returnSeq, A) {
       else if (strat === 7) conv = age1 < A.rmd_age ? Math.min(room(bkt32), trad) : 0;
       conv = Math.max(0, conv);
     }
-    // Stop conversions after conv_end_age
-    if (A.conv_end_age && age1 > A.conv_end_age) conv = 0;
+    // Stop conversions after conv_end_age (0 = no limit)
+    if (A.conv_end_age > 0 && age1 > A.conv_end_age) conv = 0;
     // Bracket headroom buffer
     if (conv > 0 && A.conv_buffer > 0) {
-      const roomUsed = [0,A.flat_conv,room(bkt10),room(bkt12),room(bkt22),room(bkt24),room(bkt32),room(bkt32)][strat] || 0;
+      const roomUsed = [0,A.flat_conv*f,room(bkt10),room(bkt12),room(bkt22),room(bkt24),room(bkt32),room(bkt32),(age1<A.rmd_age?A.flat_conv:A.flat_conv_late??A.flat_conv)*f][strat] || 0;
       conv = Math.max(0, Math.min(conv, roomUsed * (1 - A.conv_buffer)));
     }
 
-    // Principal draw — capped at remaining brokerage (nominal spend target)
-    const pdraw = Math.max(0, Math.min(A.extra_spend * f, brok - dq - dor - ti - ei));
+    // Track first conversion year
+    if (conv > 0 && mc_first_conv_yr === null) mc_first_conv_yr = yr;
+
+    // ── Spending draw logic (mirrors computeYear) ────────────────────
+    const roth_eligible_mc = (al1 || al2) && mc_first_conv_yr !== null && yr >= mc_first_conv_yr + A.roth_draw_delay;
+    const spend_target_mc  = A.extra_spend * f;
+    const brok_yield_mc    = dq + dor + ti + ei;
+    const brok_avail_mc    = Math.max(0, brok - brok_yield_mc);
+    const ss_income_mc     = s1 + s2;
+    const spend_gap_mc     = Math.max(0, spend_target_mc - ss_income_mc - brok_yield_mc);
+    let pdraw, roth_draw;
+    if (A.roth_draw_mode === 'primary' && roth_eligible_mc) {
+      roth_draw = Math.min(spend_gap_mc, roth);
+      pdraw     = Math.min(Math.max(0, spend_gap_mc - roth_draw), brok_avail_mc);
+    } else {
+      pdraw     = Math.min(spend_gap_mc, brok_avail_mc);
+      roth_draw = roth_eligible_mc
+        ? Math.min(Math.max(0, spend_gap_mc - pdraw), roth) : 0;
+    }
+    pdraw     = Math.round(Math.max(0, pdraw));
+    roth_draw = Math.round(Math.max(0, roth_draw));
     const pdraw_gain = pdraw * (1 - A.cost_basis);
 
     // SS taxable
@@ -901,15 +1060,13 @@ function mcSimulate(returnSeq, A) {
     const ord_inc  = rmd + conv + dor + ti + Math.round(ss_tax);
     const cap_inc  = dq + Math.round(pdraw_gain);
     const magi     = ord_inc + cap_inc + ei;
-    const non_roth = dq + dor + ti + ei + pdraw + s1 + s2;
-    const roth_draw = age1 >= 60
-      ? Math.max(0, Math.min(A.extra_spend * f - non_roth, roth)) : 0;
 
     const ti2      = Math.max(0, ord_inc - std);
     const fed_ord  = taxOrd(ti2, tops, f);
     const fed_ltcg = ltcg(cap_inc, ti2, ltcg0, ltcg15);
     const niit_amt = Math.min(cap_inc + ti, Math.max(0, magi - ei - niit_t)) * 0.038;
-    const state    = (ord_inc + cap_inc) * A.state_rate;
+    // VA state tax — taxes ALL income including tax-exempt interest (munis taxable at VA state level)
+    const state    = (ord_inc + cap_inc + ei) * A.state_rate;
     const on_med   = surv
       ? (age2 >= 65 && al2 ? 1 : 0)
       : (age1 >= 65 && al1 ? 1 : 0) + (age2 >= 65 && al2 ? 1 : 0);
@@ -1222,10 +1379,12 @@ function updateAll() {
 }
 
 document.querySelectorAll('.s-input').forEach(el => {
-  el.addEventListener('input', () => {
+  const handler = () => {
     clearTimeout(debounceTimer);
     debounceTimer = setTimeout(() => { saveInputs(); updateAll(); }, 180);
-  });
+  };
+  el.addEventListener('input',  handler);
+  el.addEventListener('change', handler);  // selects fire 'change', not 'input'
 });
 
 // Load saved inputs on startup, then render
@@ -1263,8 +1422,10 @@ function renderTaxSnap(A, snapYrOverride) {
   // Run projection up to snapIdx to get correct balances for that year
   let trad = A.trad, roth = A.roth, brok = A.brok;
   let yrData = null;
+  let snap_first_conv_yr = null;
   for (let i = 0; i <= snapIdx; i++) {
-    yrData = computeYear(i, A, trad, roth, brok, null);
+    yrData = computeYear(i, A, trad, roth, brok, null, snap_first_conv_yr);
+    if (yrData.conv > 0 && snap_first_conv_yr === null) snap_first_conv_yr = yrData.yr;
     trad = yrData.trad; roth = yrData.roth; brok = yrData.brok;
   }
   const yr1 = yrData;  // the computed row for SNAP_YR
@@ -1542,6 +1703,146 @@ function renderTaxSnap(A, snapYrOverride) {
   window._lastA = A;
 }
 
+// ════════════════════════════════════════════════════════════════════
+// CONVERSION OPTIMIZER — 1D golden-section + 2D coordinate descent
+// ════════════════════════════════════════════════════════════════════
+
+// Grid scan then golden-section refine.
+// Golden-section alone assumes strict unimodality which the tax objective
+// can violate (flat plateau + narrow true peak). We scan in $10K steps first
+// to locate the approximate peak, then refine within ±$30K of it.
+function goldenSection(fn, lo, hi, iters=50) {
+  const PHI = (Math.sqrt(5) - 1) / 2;
+  let x1 = hi - PHI*(hi-lo), x2 = lo + PHI*(hi-lo);
+  let f1 = fn(x1), f2 = fn(x2);
+  for (let k=0; k<iters; k++) {
+    if (f1 < f2) { lo=x1; x1=x2; f1=f2; x2=lo+PHI*(hi-lo); f2=fn(x2); }
+    else          { hi=x2; x2=x1; f2=f1; x1=hi-PHI*(hi-lo); f1=fn(x1); }
+  }
+  return (lo+hi)/2;
+}
+
+function gridThenRefine(fn, lo, hi, step=10000) {
+  // Phase 1: coarse grid scan to find best region
+  let bestX = lo, bestF = -Infinity;
+  for (let x = lo; x <= hi; x += step) {
+    const f = fn(x);
+    if (f > bestF) { bestF = f; bestX = x; }
+  }
+  // Phase 2: golden-section within ±2 steps of best grid point
+  const rlo = Math.max(lo, bestX - 2*step);
+  const rhi = Math.min(hi, bestX + 2*step);
+  return Math.round(goldenSection(fn, rlo, rhi) / 1000) * 1000;
+}
+
+function portfolioFor(A, earlyConv, lateConv, strat) {
+  // Respect conv_end_age from sidebar so optimizer and projection tab are consistent.
+  // conv_end_age:0 means "no limit" — if sidebar is 0, optimizer also uses no limit.
+  const At = Object.assign({}, A, { flat_conv: earlyConv, flat_conv_late: lateConv });
+  const rows = runProjection(At, strat || 8);
+  return finalBalance(rows,'trad') + finalBalance(rows,'roth') + finalBalance(rows,'brok');
+}
+
+function runOptimizer() {
+  const btn = $('opt-btn');
+  const resultEl = $('opt-result');
+  btn.disabled = true;
+  btn.textContent = '⏳ Scanning ~1,600 scenarios…';
+  resultEl.style.display = 'none';
+
+  setTimeout(() => {
+    const A = getA();
+    const CAP = 487450;  // MFJ 32% bracket top in 2026$ — no rational conversion goes higher
+
+    // ── Step 1: 1D flat optimum (Strategy 1) ─────────────────────────
+    const opt1D = gridThenRefine(x => portfolioFor(A, x, x, 1), 0, CAP);
+    const port1D = portfolioFor(A, opt1D, opt1D, 1);
+
+    // ── Step 2: 2D coordinate descent (Strategy 8) ───────────────────
+    // Gauss-Seidel: update each dimension sequentially using the latest value
+    // of the other, so each step immediately benefits from the previous update.
+    let early = opt1D, late = opt1D;
+    for (let iter=0; iter<16; iter++) {
+      const newEarly = gridThenRefine(x => portfolioFor(A, x,        late, 8), 0, CAP);
+      const newLate  = gridThenRefine(x => portfolioFor(A, newEarly, x,    8), 0, CAP);
+      const converged = Math.abs(newEarly-early)<500 && Math.abs(newLate-late)<500;
+      early=newEarly; late=newLate;
+      if (converged) break;
+    }
+    // Sanity check: 2D must beat 1D, otherwise the surface isn't unimodal here
+    const port2D_raw = portfolioFor(A, early, late, 8);
+    const port2D = port2D_raw > port1D ? port2D_raw : port1D;
+    if (port2D === port1D) { early = opt1D; late = opt1D; }  // fall back to flat
+
+    // ── Step 3: best bracket strategy ────────────────────────────────
+    const bracketNames = ['','1–Flat','2–10%','3–12%','4–22%','5–24%','6–32%','7–Pre-RMD','8–2-Period'];
+    let bestBracketPort = -Infinity, bestBracketName = '';
+    for (let s=2; s<=7; s++) {
+      const p = portfolioFor(A, early, late, s);
+      if (p > bestBracketPort) { bestBracketPort=p; bestBracketName=bracketNames[s]; }
+    }
+
+    const portZero = portfolioFor(A, 0, 0, 1);
+    const trueMax  = Math.max(port1D, port2D, bestBracketPort);
+    const winner   = port2D>=port1D && port2D>=bestBracketPort ? '2D'
+                   : port1D>=bestBracketPort ? '1D' : 'bracket';
+
+    // Apply best result to UI
+    $('flat_conv').value      = early;
+    $('flat_conv_late').value = late;
+    if (winner === 'bracket') {
+      $('strategy').value = String(bracketNames.indexOf(bestBracketName));
+    } else {
+      $('strategy').value = winner === '2D' ? '8' : '1';
+    }
+    saveInputs(); updateAll();
+
+    // Build result panel
+    const gain1D = port1D - portZero;
+    const gain2D = port2D - portZero;
+    const gainBr = bestBracketPort - portZero;
+
+    resultEl.style.display = 'block';
+    resultEl.innerHTML = `
+<strong style="color:var(--green)">Optimisation results</strong><br>
+<table style="width:100%;font-size:10px;font-family:var(--font-mono);border-collapse:collapse;margin-top:4px">
+  <tr style="background:var(--navy);color:#fff">
+    <td style="padding:3px 5px">Strategy</td>
+    <td style="padding:3px 5px;text-align:right">Conv (early)</td>
+    <td style="padding:3px 5px;text-align:right">Conv (late)</td>
+    <td style="padding:3px 5px;text-align:right">Final portfolio</td>
+    <td style="padding:3px 5px;text-align:right">vs $0 conv</td>
+  </tr>
+  <tr style="background:${winner==='1D'?'#e6f4ea':''}">
+    <td style="padding:3px 5px">Flat (inflated)${winner==='1D'?' ✅':''}</td>
+    <td style="padding:3px 5px;text-align:right">${fmt(opt1D)}</td>
+    <td style="padding:3px 5px;text-align:right">${fmt(opt1D)}</td>
+    <td style="padding:3px 5px;text-align:right">${fmt(port1D)}</td>
+    <td style="padding:3px 5px;text-align:right;color:var(--green)">+${fmt(gain1D)}</td>
+  </tr>
+  <tr style="background:${winner==='2D'?'#e6f4ea':'#f7f7f7'}">
+    <td style="padding:3px 5px">2-Period flat${winner==='2D'?' ✅':''}</td>
+    <td style="padding:3px 5px;text-align:right">${fmt(early)}</td>
+    <td style="padding:3px 5px;text-align:right">${fmt(late)}</td>
+    <td style="padding:3px 5px;text-align:right">${fmt(port2D)}</td>
+    <td style="padding:3px 5px;text-align:right;color:var(--green)">+${fmt(gain2D)}</td>
+  </tr>
+  <tr style="background:${winner==='bracket'?'#e6f4ea':''}">
+    <td style="padding:3px 5px">Best bracket (${bestBracketName})${winner==='bracket'?' ✅':''}</td>
+    <td style="padding:3px 5px;text-align:right" colspan="2">dynamic</td>
+    <td style="padding:3px 5px;text-align:right">${fmt(bestBracketPort)}</td>
+    <td style="padding:3px 5px;text-align:right;color:var(--green)">+${fmt(gainBr)}</td>
+  </tr>
+</table>
+<div style="margin-top:5px;font-size:9px;color:var(--muted)">
+  Strategy switched to winner above ↑. Early = before RMD age; Late = RMD age onward.
+</div>`;
+
+    btn.disabled = false;
+    btn.textContent = '⚡ Optimise Conversion Amount';
+    btn.title = '';
+  }, 20);
+}
 </script>
 </body>
 </html>
