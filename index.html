@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Roth Conversion Planner</title>
+<title>Roth Conversion Planner v3.8</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -162,7 +162,42 @@ canvas#mc-chart{width:100%;height:300px;display:block}
 .dist-row .bar{height:100%;border-radius:3px;transition:width .6s ease}
 .dist-row .amt{width:80px;text-align:right;font-weight:600}
 
-#mc-spinner{display:flex;align-items:center;justify-content:center;height:200px;flex-direction:column;gap:12px;color:var(--muted);font-family:var(--font-mono);font-size:11px}
+/* ── README ──────────────────────────────────────────── */
+.rm-wrap{max-width:860px;margin:0 auto;display:flex;flex-direction:column;gap:24px}
+.rm-hero{background:var(--navy);border-radius:10px;padding:28px 32px;color:#fff}
+.rm-hero h1{font-family:var(--font-serif);font-size:22px;font-weight:700;margin-bottom:6px}
+.rm-hero p{font-size:12px;color:#aac4e8;line-height:1.7;font-family:var(--font-sans);max-width:620px}
+.rm-section{background:#fff;border-radius:8px;border:1px solid var(--border);overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.05)}
+.rm-section-hdr{background:var(--navy);color:#fff;padding:10px 18px;display:flex;align-items:center;gap:10px}
+.rm-section-hdr .icon{font-size:16px}
+.rm-section-hdr h2{font-family:var(--font-serif);font-size:14px;font-weight:700}
+.rm-section-hdr p{font-size:10px;color:#aac4e8;font-family:var(--font-mono);margin-top:1px}
+.rm-body{padding:18px 20px;display:flex;flex-direction:column;gap:14px}
+.rm-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px}
+.rm-card{background:var(--gray);border-radius:6px;padding:12px 14px;border-left:3px solid var(--blue)}
+.rm-card.green{border-left-color:var(--green)}
+.rm-card.amber{border-left-color:var(--amber)}
+.rm-card.red{border-left-color:var(--red)}
+.rm-card.navy{border-left-color:var(--navy)}
+.rm-card h4{font-size:11px;font-weight:700;font-family:var(--font-mono);color:var(--navy);margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px}
+.rm-card p{font-size:11px;color:var(--text);line-height:1.65}
+.rm-card code{background:#E8EDF5;border-radius:3px;padding:1px 5px;font-size:10px;font-family:var(--font-mono);color:var(--navy)}
+.rm-table{width:100%;border-collapse:collapse;font-size:11px;font-family:var(--font-mono);table-layout:fixed}
+.rm-table th{background:var(--blue);color:#fff;padding:6px 10px;text-align:left;font-weight:500;font-size:10px;letter-spacing:.3px;white-space:normal}
+.rm-table td{padding:5px 10px;border-bottom:1px solid var(--border);white-space:normal;word-wrap:break-word;vertical-align:top}
+.rm-table tr:nth-child(even) td{background:var(--strip)}
+.rm-table td:first-child{font-weight:600;color:var(--navy);width:120px}
+.rm-note{background:#FFFBF0;border:1px solid #F0CF88;border-radius:6px;padding:10px 14px;font-size:11px;color:#5a4000;line-height:1.65}
+.rm-note strong{color:#7a4800}
+.rm-steps{display:flex;flex-direction:column;gap:8px}
+.rm-step{display:flex;gap:12px;align-items:flex-start}
+.rm-step-num{width:22px;height:22px;min-width:22px;background:var(--blue);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;font-family:var(--font-mono);margin-top:1px;flex-shrink:0}
+.rm-step-body{flex:1;font-size:11px;line-height:1.65;color:var(--text)}
+.rm-step-body strong{color:var(--navy)}
+.rm-badge{display:inline-block;padding:2px 7px;border-radius:10px;font-size:9px;font-weight:700;font-family:var(--font-mono);margin-left:4px}
+.rm-badge-new{background:#C6EFCE;color:#375623}
+
+align-items:center;justify-content:center;height:200px;flex-direction:column;gap:12px;color:var(--muted);font-family:var(--font-mono);font-size:11px}
 .spinner{width:28px;height:28px;border:3px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin .7s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 
@@ -198,7 +233,7 @@ canvas#mc-chart{width:100%;height:300px;display:block}
 <div id="sidebar">
   <div id="sidebar-header">
     <h1>Roth Conversion Planner</h1>
-    <p>Change any input — all tabs update instantly</p>
+    <p>v3.8 · OBBB senior deduction · Change any input — all tabs update instantly</p>
   </div>
   <div id="sidebar-scroll">
 
@@ -223,7 +258,7 @@ canvas#mc-chart{width:100%;height:300px;display:block}
     <div class="s-sec">Returns &amp; Inflation</div>
     <div class="s-row"><span class="s-label">Real portfolio growth</span><input class="s-input pct" id="growth" type="number" step="0.1" value="6"><span style="font-size:10px;color:var(--muted)">%</span></div>
     <div class="s-row"><span class="s-label">Inflation rate</span><input class="s-input pct" id="inflation" type="number" step="0.1" value="2.5"><span style="font-size:10px;color:var(--muted)">%</span></div>
-    <div class="s-row"><span class="s-label">Brokerage cost basis</span><input class="s-input pct" id="cost_basis" type="number" step="1" value="80"><span style="font-size:10px;color:var(--muted)">%</span></div>
+    <div class="s-row"><span class="s-label">Brokerage cost basis</span><input class="s-input pct" id="cost_basis" type="number" step="1" value="75"><span style="font-size:10px;color:var(--muted)">%</span></div>
 
     <div class="s-sec">Brokerage Yield (% of balance)</div>
     <div class="s-row"><span class="s-label">Qualified dividend yield</span><input class="s-input pct" id="div_qual_yield" type="number" step="0.01" value="1.25"><span style="font-size:10px;color:var(--muted)">%</span></div>
@@ -232,11 +267,11 @@ canvas#mc-chart{width:100%;height:300px;display:block}
     <div class="s-row"><span class="s-label">Tax-exempt interest yield</span><input class="s-input pct" id="int_exempt_yield" type="number" step="0.01" value="0.5"><span style="font-size:10px;color:var(--muted)">%</span></div>
 
     <div class="s-sec">Spending</div>
-    <div class="s-row"><span class="s-label">Annual spend (2026$)</span><input class="s-input" id="extra_spend" type="number" value="200000"></div>
+    <div class="s-row"><span class="s-label">Annual spend (2026$)</span><input class="s-input" id="extra_spend" type="number" value="150000"></div>
 
     <div class="s-sec">Social Security (2026$)</div>
     <div class="s-row"><span class="s-label">Older SS start age</span><input class="s-input" id="ss1_start_age" type="number" value="70"></div>
-    <div class="s-row"><span class="s-label">Older SS benefit</span><input class="s-input" id="ss1_amount" type="number" value="45000"></div>
+    <div class="s-row"><span class="s-label">Older SS benefit</span><input class="s-input" id="ss1_amount" type="number" value="50000"></div>
     <div class="s-row"><span class="s-label">Younger SS start age</span><input class="s-input" id="ss2_start_age" type="number" value="67"></div>
     <div class="s-row"><span class="s-label">Younger SS benefit</span><input class="s-input" id="ss2_amount" type="number" value="30000"></div>
 
@@ -259,7 +294,7 @@ canvas#mc-chart{width:100%;height:300px;display:block}
       </select>
     </div>
     <div class="s-row"><span class="s-label">Flat annual conv. (strat 1, 2026$)</span><input class="s-input" id="flat_conv" type="number" value="100000"></div>
-    <div class="s-row"><span class="s-label">Late conv. after RMD age (strat 8, 2026$)</span><input class="s-input" id="flat_conv_late" type="number" value="150000"></div>
+    <div class="s-row"><span class="s-label">Late conv. after RMD age (strat 8, 2026$)</span><input class="s-input" id="flat_conv_late" type="number" value="100000"></div>
     <div class="s-row" style="flex-direction:column;align-items:stretch;gap:6px;padding:8px 14px;background:#F0F8FF;border-left:3px solid var(--blue)">
       <button id="opt-btn" onclick="runOptimizer()" style="background:var(--blue);color:#fff;border:none;border-radius:4px;padding:5px 10px;font-size:11px;font-weight:600;font-family:var(--font-mono);cursor:pointer;letter-spacing:.3px">⚡ Optimize Conversion Amount</button>
       <div id="opt-result" style="font-size:10px;font-family:var(--font-mono);color:var(--navy);line-height:1.6;display:none"></div>
@@ -297,8 +332,10 @@ canvas#mc-chart{width:100%;height:300px;display:block}
     <div class="tab" data-tab="taxsnap">Tax Snapshot</div>
     <div class="tab" data-tab="montecarlo">Monte Carlo</div>
     <div class="tab" data-tab="projection">Projection</div>
+    <div class="tab" data-tab="readme">📖 Read Me</div>
   </div>
   <div id="content">
+    <div id="tab-readme"     class="tab-panel" style="display:none"></div>
     <div id="tab-summary"    class="tab-panel"></div>
     <div id="tab-taxsnap"    class="tab-panel" style="display:none"></div>
     <div id="tab-montecarlo" class="tab-panel" style="display:none"></div>
@@ -361,7 +398,7 @@ function getA() {
     extra_spend:g('extra_spend'),
     ss1_start_age:n('ss1_start_age'), ss1_amount:g('ss1_amount'),
     ss2_start_age:n('ss2_start_age'), ss2_amount:g('ss2_amount'),
-    state_rate:p('state_rate'), std_ded:32200, niit_thresh:g('niit_thresh'),
+    state_rate:p('state_rate'), std_ded:32200, senior_ded:6000, niit_thresh:g('niit_thresh'),
     strategy:n('strategy'), flat_conv:g('flat_conv'), flat_conv_late:g('flat_conv_late') ?? g('flat_conv') ?? 0,
     conv_end_age:n('conv_end_age'), conv_buffer:p('conv_buffer'),
     rmd_age:n('rmd_age'),
@@ -415,7 +452,6 @@ function computeYear(i, A, prevTrad, prevRoth, prevBrok, stratOverride, first_co
   const f    = Math.pow(1+A.inflation, yr-2026);
 
   const tops  = surv ? SNG_TOPS : MFJ_TOPS;
-  const std   = (surv ? 16100 : A.std_ded) * f;
   const niit_t= (surv ? 200000 : A.niit_thresh) * f;
   const ltcg0 = (surv ? SNG_LTCG0  : MFJ_LTCG0)  * f;
   const ltcg15= (surv ? SNG_LTCG15 : MFJ_LTCG15) * f;
@@ -454,6 +490,23 @@ function computeYear(i, A, prevTrad, prevRoth, prevBrok, stratOverride, first_co
   // Approximate SS taxable for conversion room calc
   const ss_approx = (s1 + s2) * 0.85;
   const other_ord = dor + ti + ss_approx;
+
+  // ── OBBB senior bonus deduction (flat $6,000/person, NOT inflation-indexed) ──
+  // Phase-out: $60 per $1,000 of MAGI over threshold (Single $75K, MFJ $150K).
+  // Fully eliminated at Single $175K / MFJ $250K.
+  // Uses pre-conversion MAGI to avoid circularity (conversion amount depends on
+  // the deduction, which would otherwise depend on the conversion).
+  const sen_per   = A.senior_ded;                          // $6,000 flat, unindexed
+  const sen_qual1 = al1 && age1 >= 65;
+  const sen_qual2 = al2 && age2 >= 65;
+  const sen_gross = (sen_qual1 ? sen_per : 0) + (sen_qual2 ? sen_per : 0);
+  const magi_pre  = rmd + dq + dor + ti + ei + ss_approx;  // pre-conversion MAGI proxy
+  const sen_thresh= surv ? 75000 : 150000;                 // phase-out start (unindexed)
+  const sen_excess= Math.max(0, magi_pre - sen_thresh);
+  const sen_reduc = Math.floor(sen_excess / 1000) * 60;    // $60 per $1,000
+  const sen_ded   = Math.max(0, sen_gross - sen_reduc);    // floored at 0
+
+  const std = (surv ? 16100 : A.std_ded) * f + sen_ded;   // base std (inflated) + flat senior bonus
 
   // Conversion room per strategy
   const bkt_ceil = (sng, mfj) => surv ? sng : mfj;
@@ -542,7 +595,7 @@ function computeYear(i, A, prevTrad, prevRoth, prevBrok, stratOverride, first_co
   // NIIT
   const niit_inc = cap_inc + ti;
   const niit     = round(Math.min(niit_inc, Math.max(0, magi - ei - niit_t)) * 0.038);
-  // VA state — taxes ALL income including tax-exempt interest (munis taxable at VA state level)
+  // State tax — taxes ALL income including tax-exempt interest (munis may be taxable at state level)
   const state_tax= round((ord_inc + cap_inc + ei) * A.state_rate);
   // IRMAA
   const on_med = surv
@@ -564,7 +617,8 @@ function computeYear(i, A, prevTrad, prevRoth, prevBrok, stratOverride, first_co
 
   return {
     yr, age1, age2, f, al1, al2, surv, either,
-    std, rmd, conv,
+    std, sen_ded, sen_qual1, sen_qual2, sen_gross, magi_pre,
+    rmd, conv,
     dq, dor, ti, ei, s1, s2, ss_tax,
     pdraw, roth_draw,
     ord_inc, cap_inc, magi,
@@ -614,7 +668,7 @@ function renderProjection(A) {
   const hdrs=['Year','Sp1','Sp2',
               'RMD','Conv','Qual Div','Ord Div','Tax Int','Ex Int','SS1','SS2','SS Tax','P.Draw','Roth Draw',
               'Ord Inc','Cap Inc','MAGI',
-              'Fed Ord','Fed LTCG','NIIT','VA State','IRMAA','Total Tax','Marg%','Eff%',
+              'Fed Ord','Fed LTCG','NIIT','State','IRMAA','Total Tax','Marg%','Eff%',
               'Trad','Roth','Brok','TOTAL'];
 
   let html = `<div class="page-title">Year-by-Year Projection</div>
@@ -795,7 +849,7 @@ function renderSummary(A) {
 <div class="sum-card">
   <h3>Lifetime Tax Totals</h3>
   <div class="sum-row"><span class="lbl">Federal (ord + LTCG + NIIT)</span><span class="val">${fmt(rows.reduce((s,r)=>s+r.fed_ord+r.fed_ltcg+r.niit,0))}</span></div>
-  <div class="sum-row"><span class="lbl">VA state tax (5.75%)</span><span class="val">${fmt(rows.reduce((s,r)=>s+r.state_tax,0))}</span></div>
+  <div class="sum-row"><span class="lbl">State tax (5.75%)</span><span class="val">${fmt(rows.reduce((s,r)=>s+r.state_tax,0))}</span></div>
   <div class="sum-row"><span class="lbl">IRMAA surcharges</span><span class="val">${fmt(rows.reduce((s,r)=>s+r.irmaa,0))}</span></div>
   <div class="sum-row"><span class="lbl">TOTAL lifetime tax</span><span class="val big" style="font-size:13px">${fmt(totTax)}</span></div>
 </div>
@@ -917,7 +971,7 @@ function renderSummary(A) {
   [
     '1. Projection starts at older spouse retirement year. Ages, milestones, and inflation all flow from that start year.',
     '2. Conversion room = BracketTop + StdDed - RMD - OrdDiv - TaxInt - SS taxable. Fills ordinary taxable income to ceiling.',
-    '3. VA taxes ALL income at 5.75% including tax-exempt interest (munis are taxable at VA state level).',
+    '3. State tax is applied to ALL income at the rate above, including tax-exempt interest (munis may be taxable at state level).',
     '4. Tax-exempt interest excluded from federal income tax but counts toward IRMAA MAGI.',
     '5. After older spouse reaches life expectancy, model switches to Single filer.',
     '6. IRMAA looks back 2 years: income at age 63 sets surcharge at 65.',
@@ -933,7 +987,7 @@ function renderSummary(A) {
 // ════════════════════════════════════════════════════════════════════
 // MONTE CARLO
 // ════════════════════════════════════════════════════════════════════
-const N_SIMS = 5000;
+const N_SIMS = 10000;
 let mcResults = null;
 let mcRunning = false;
 
@@ -1065,7 +1119,7 @@ function mcSimulate(returnSeq, A) {
     const fed_ord  = taxOrd(ti2, tops, f);
     const fed_ltcg = ltcg(cap_inc, ti2, ltcg0, ltcg15);
     const niit_amt = Math.min(cap_inc + ti, Math.max(0, magi - ei - niit_t)) * 0.038;
-    // VA state tax — taxes ALL income including tax-exempt interest (munis taxable at VA state level)
+    // State tax — taxes ALL income including tax-exempt interest (munis may be taxable at state level)
     const state    = (ord_inc + cap_inc + ei) * A.state_rate;
     const on_med   = surv
       ? (age2 >= 65 && al2 ? 1 : 0)
@@ -1304,12 +1358,12 @@ function drawMCChart(bands) {
 function renderMCPlaceholder() {
   $('tab-montecarlo').innerHTML = `
 <div class="page-title">Monte Carlo</div>
-<div class="page-sub">5,000 simulations | Bootstrap from S&P 500 real returns 1926–2024</div>
+<div class="page-sub">10,000 simulations | Bootstrap from S&P 500 real returns 1926–2024</div>
 <div id="mc-container">
   <div style="background:#fff;border-radius:8px;padding:32px;text-align:center;border:1px solid var(--border)">
     <div style="font-size:32px;margin-bottom:12px">📊</div>
     <div style="font-family:var(--font-serif);font-size:16px;color:var(--navy);margin-bottom:8px">Ready to simulate</div>
-    <div style="font-size:11px;color:var(--muted);font-family:var(--font-mono);margin-bottom:18px">Runs 5,000 bootstrap simulations using 99 years of S&P 500 real return data.<br>Updates when you change assumptions.</div>
+    <div style="font-size:11px;color:var(--muted);font-family:var(--font-mono);margin-bottom:18px">Runs 10,000 bootstrap simulations using 99 years of S&P 500 real return data.<br>Updates when you change assumptions.</div>
     <button class="run-btn" id="mc-run-btn" onclick="startMC()">Run Monte Carlo (5,000 sims)</button>
   </div>
 </div>`;
@@ -1369,7 +1423,8 @@ document.querySelectorAll('.tab').forEach(t => {
 function updateAll() {
   const A = getA();
   $('ret_year_disp').textContent = A.ret_year;
-  if (activeTab === 'projection') renderProjection(A);
+  if (activeTab === 'readme') renderReadMe(A);
+  else if (activeTab === 'projection') renderProjection(A);
   else if (activeTab === 'summary') renderSummary(A);
   else if (activeTab === 'taxsnap') renderTaxSnap(A);
   else if (activeTab === 'montecarlo') {
@@ -1432,7 +1487,10 @@ function renderTaxSnap(A, snapYrOverride) {
 
   const f    = Math.pow(1 + A.inflation, SNAP_YR - 2026);
   const tops = yr1.surv ? SNG_TOPS : MFJ_TOPS;
-  const std  = (yr1.surv ? 16100 : A.std_ded) * f;
+  // std (incl. OBBB senior bonus with phase-out) already computed correctly in computeYear
+  const std          = yr1.std;
+  const sen_ded_snap = yr1.sen_ded;
+  const sen_gross_snap = yr1.sen_gross;
   const ltcg15_thresh = (yr1.surv ? SNG_LTCG15 : MFJ_LTCG15) * f;
   const ltcg0_thresh  = (yr1.surv ? SNG_LTCG0  : MFJ_LTCG0)  * f;
 
@@ -1478,7 +1536,7 @@ function renderTaxSnap(A, snapYrOverride) {
     { lbl: 'Fed Ordinary',  amt: yr1.fed_ord,   color: '#1F3864' },
     { lbl: 'Fed LTCG',      amt: yr1.fed_ltcg,  color: '#2E75B6' },
     { lbl: 'NIIT (3.8%)',   amt: yr1.niit,      color: '#5B9BD5' },
-    { lbl: 'VA State',      amt: yr1.state_tax, color: '#C55A11' },
+    { lbl: 'State',      amt: yr1.state_tax, color: '#C55A11' },
     { lbl: 'IRMAA',         amt: yr1.irmaa||0,  color: '#843C0C' },
   ].filter(s => s.amt > 0);
   const barTotal = barSegs.reduce((s,b)=>s+b.amt, 0);
@@ -1527,9 +1585,12 @@ function renderTaxSnap(A, snapYrOverride) {
     <span class="val" style="font-size:14px;color:var(--navy)">${fmt2(grossInc)}</span>
   </div>
   <div class="sum-row">
-    <span class="lbl">Less: standard deduction (${yr1.surv?'Single':'MFJ'})</span>
+    <span class="lbl">Less: standard deduction (${yr1.surv?'Single':'MFJ'})${sen_ded_snap > 0 ? ' + OBBB senior bonus' : (sen_gross_snap > 0 ? ' <em style="color:var(--muted);font-size:9px">(senior bonus phased out)</em>' : '')}</span>
     <span class="val" style="color:var(--green)">(${fmt2(std)})</span>
   </div>
+  ${sen_gross_snap > 0 ? `<div class="sum-row" style="background:${sen_ded_snap>0?'var(--green-lt)':'#FFF5F5'};border-radius:4px;padding:3px 6px;font-size:10px">
+    <span class="lbl" style="color:${sen_ded_snap>0?'var(--green)':'var(--red)'}">↳ Base ${fmt2((yr1.surv?16100:A.std_ded)*f)} + Senior bonus: gross ${fmt2(sen_gross_snap)} − phase-out ${fmt2(sen_gross_snap - sen_ded_snap)} = <strong>${fmt2(sen_ded_snap)}</strong> &nbsp;|&nbsp; Pre-conv MAGI: ${fmt2(yr1.magi_pre)} vs ${yr1.surv?'$75K':'$150K'} threshold</span>
+  </div>` : ''}
   <div class="sum-row">
     <span class="lbl" style="font-weight:700">Federal Taxable Ordinary Income</span>
     <span class="val" style="font-size:13px;color:var(--navy)">${fmt2(ti2)}</span>
@@ -1602,10 +1663,10 @@ function renderTaxSnap(A, snapYrOverride) {
     <span class="val" style="font-size:13px;color:var(--maroon)">${fmt2(yr1.niit)}</span>
   </div>
   <div style="height:12px"></div>
-  <div class="sum-row"><span class="lbl">VA state taxable income</span><span class="val">${fmt2(yr1.ord_inc + capInc)}</span></div>
-  <div class="sum-row"><span class="lbl">VA flat rate</span><span class="val">${fmtP(A.state_rate)}</span></div>
+  <div class="sum-row"><span class="lbl">State taxable income</span><span class="val">${fmt2(yr1.ord_inc + capInc)}</span></div>
+  <div class="sum-row"><span class="lbl">State flat rate</span><span class="val">${fmtP(A.state_rate)}</span></div>
   <div class="sum-row" style="border-top:2px solid var(--border);margin-top:4px;padding-top:6px">
-    <span class="lbl" style="font-weight:700">VA State Tax</span>
+    <span class="lbl" style="font-weight:700">State Tax</span>
     <span class="val" style="font-size:13px;color:var(--maroon)">${fmt2(yr1.state_tax)}</span>
   </div>
   ${yr1.irmaa ? `<div style="height:12px"></div>
@@ -1618,7 +1679,7 @@ function renderTaxSnap(A, snapYrOverride) {
   <div class="sum-row"><span class="lbl">Federal ordinary tax</span><span class="val red">${fmt2(yr1.fed_ord)}</span></div>
   <div class="sum-row"><span class="lbl">Federal LTCG tax</span><span class="val red">${fmt2(yr1.fed_ltcg)}</span></div>
   <div class="sum-row"><span class="lbl">NIIT (3.8%)</span><span class="val red">${fmt2(yr1.niit)}</span></div>
-  <div class="sum-row"><span class="lbl">VA State (${fmtP(A.state_rate)})</span><span class="val red">${fmt2(yr1.state_tax)}</span></div>
+  <div class="sum-row"><span class="lbl">State (${fmtP(A.state_rate)})</span><span class="val red">${fmt2(yr1.state_tax)}</span></div>
   ${yr1.irmaa ? `<div class="sum-row"><span class="lbl">IRMAA</span><span class="val red">${fmt2(yr1.irmaa)}</span></div>` : ''}
   <div class="sum-row" style="border-top:2px solid var(--navy);margin-top:6px;padding-top:8px">
     <span class="lbl" style="font-weight:700;font-size:13px">TOTAL TAX BURDEN</span>
@@ -1842,6 +1903,197 @@ function runOptimizer() {
     btn.textContent = '⚡ Optimise Conversion Amount';
     btn.title = '';
   }, 20);
+}
+
+// ════════════════════════════════════════════════════════════════════
+// RENDER README TAB
+// ════════════════════════════════════════════════════════════════════
+function renderReadMe(A) {
+  $('tab-readme').innerHTML = `
+<div class="rm-wrap">
+
+  <!-- Hero -->
+  <div class="rm-hero">
+    <h1>Roth Conversion Planner — User Guide</h1>
+    <p>This tool models multi-decade Roth conversion strategies for a married couple (or surviving spouse) with traditional 401k/IRA, taxable brokerage, and Roth accounts. Every input change instantly recalculates all five tabs. All dollar inputs are in <strong>2026 real dollars</strong>; the model inflates them each year using your stated inflation rate.</p>
+  </div>
+
+  <!-- SIDEBAR INPUTS -->
+  <div class="rm-section">
+    <div class="rm-section-hdr">
+      <span class="icon">⚙️</span>
+      <div><h2>Sidebar Inputs</h2><p>What each field controls</p></div>
+    </div>
+    <div class="rm-body">
+      <div class="rm-grid">
+        <div class="rm-card navy">
+          <h4>Ages &amp; Retirement</h4>
+          <p>Enter <strong>current ages</strong> and the age at which each spouse retires. The projection begins in the retirement year of the older spouse and runs for up to 55 years.</p>
+        </div>
+        <div class="rm-card navy">
+          <h4>Balances at Retirement</h4>
+          <p>Enter balances you expect to <em>have at retirement</em>, not today's values. Traditional = pre-tax 401k/IRA. Brokerage = taxable account. Roth = existing Roth IRA.</p>
+        </div>
+        <div class="rm-card navy">
+          <h4>Life Expectancy</h4>
+          <p>The model runs until both spouses have passed. The surviving spouse switches to Single filing status automatically and inherits survivor Social Security.</p>
+        </div>
+        <div class="rm-card navy">
+          <h4>Returns &amp; Inflation</h4>
+          <p><strong>Real portfolio growth</strong> is applied after inflation — e.g. 6% real means portfolios grow 6% in purchasing-power terms each year regardless of inflation. <strong>Brokerage cost basis</strong> determines what fraction of withdrawals is a taxable gain.</p>
+        </div>
+        <div class="rm-card navy">
+          <h4>Brokerage Yield</h4>
+          <p>Annual income generated as a <em>percentage of the brokerage balance</em>: qualified dividends (LTCG rates), ordinary dividends, taxable interest, and tax-exempt (muni) interest. These are taxed each year even without a withdrawal.</p>
+        </div>
+        <div class="rm-card navy">
+          <h4>Social Security</h4>
+          <p>Enter each spouse's monthly benefit in 2026 dollars and the age they start claiming. After the older spouse passes, the younger receives the higher of the two benefits as a survivor benefit.</p>
+        </div>
+        <div class="rm-card navy">
+          <h4>Taxes</h4>
+          <p><strong>VA state rate</strong> is applied as a flat rate on all income including tax-exempt interest (some states tax muni income). <strong>NIIT threshold</strong> defaults to $250K MFJ; adjust if your situation differs.</p>
+        </div>
+        <div class="rm-card green">
+          <h4>OBBB Senior Deduction <span class="rm-badge rm-badge-new">v3.8 NEW</span></h4>
+          <p>Each spouse aged 65+ receives up to <strong>$6,000</strong> additional standard deduction under the One Big Beautiful Bill (OBBB, 2025). This amount is <strong>flat and unindexed</strong> — it does not grow with inflation.<br><br>
+          <strong>Phase-out:</strong> Reduced by $60 per $1,000 of MAGI above <code>$150K MFJ</code> / <code>$75K Single</code>. Fully eliminated at <code>$250K MFJ</code> / <code>$175K Single</code>. Phase-out is calculated against pre-conversion MAGI (RMD + brokerage income + SS) to avoid circularity. The Tax Snapshot shows the gross bonus, phase-out reduction, and net deduction each year.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONVERSION STRATEGIES -->
+  <div class="rm-section">
+    <div class="rm-section-hdr">
+      <span class="icon">🔄</span>
+      <div><h2>Conversion Strategies</h2><p>Eight approaches — how they work and when to use each</p></div>
+    </div>
+    <div class="rm-body">
+      <table class="rm-table">
+        <thead><tr><th>Strategy</th><th>How it works</th><th>Best when…</th></tr></thead>
+        <tbody>
+          <tr><td>1 – Flat</td><td>Converts a fixed dollar amount every year (inflated). You set the amount.</td><td>Simple baseline; use with the Optimizer to find the right amount.</td></tr>
+          <tr><td>2 – Fill 10%</td><td>Converts just enough to fill the 10% bracket top.</td><td>Very conservative; keeps taxes minimal.</td></tr>
+          <tr><td>3 – Fill 12%</td><td>Fills up to the 12% bracket top.</td><td>Good if you want to avoid 22%+ rates entirely.</td></tr>
+          <tr><td>4 – Fill 22%</td><td>Fills up to the 22% bracket top.</td><td>Moderate — avoids the 24% jump.</td></tr>
+          <tr><td>5 – Fill 24%</td><td>Fills up to the 24% bracket top. <em>Default.</em></td><td>Most common choice; captures significant conversion before the 32% cliff.</td></tr>
+          <tr><td>6 – Fill 32%</td><td>Fills up to the 32% bracket top.</td><td>Aggressive — justified if heirs face higher rates or RMDs are large.</td></tr>
+          <tr><td>7 – Pre-RMD 32%</td><td>Same as Fill 32% but stops converting once RMDs begin.</td><td>Maximise conversions in the window before mandatory RMD income.</td></tr>
+          <tr><td>8 – 2-Period Flat</td><td>Uses one flat amount before RMD age and a separate (usually lower) flat amount after. Set both amounts in the sidebar.</td><td>Reflects the natural drop in conversion headroom once RMDs start.</td></tr>
+        </tbody>
+      </table>
+      <div class="rm-note">
+        <strong>Bracket fill strategies</strong> calculate room dynamically each year: they look at RMDs, dividends, interest, and 85% of estimated Social Security, then convert just enough to fill to the chosen bracket ceiling. The <strong>Bracket Headroom Buffer</strong> (%) shaves that amount down — useful to leave room for unexpected December dividends.
+      </div>
+    </div>
+  </div>
+
+  <!-- OPTIMIZER -->
+  <div class="rm-section">
+    <div class="rm-section-hdr">
+      <span class="icon">⚡</span>
+      <div><h2>Using the Optimizer</h2><p>How it works and what to do with the results</p></div>
+    </div>
+    <div class="rm-body">
+      <div class="rm-steps">
+        <div class="rm-step"><div class="rm-step-num">1</div><div class="rm-step-body"><strong>Set all other inputs first.</strong> The optimizer takes your ages, balances, SS, returns, and inflation as given. Tune those before running it.</div></div>
+        <div class="rm-step"><div class="rm-step-num">2</div><div class="rm-step-body"><strong>Click ⚡ Optimize Conversion Amount.</strong> It scans ~1,600 scenarios across three approaches: (a) a single flat annual conversion amount, (b) two different flat amounts — one before and one after RMD age, and (c) each of the six bracket-fill strategies.</div></div>
+        <div class="rm-step"><div class="rm-step-num">3</div><div class="rm-step-body"><strong>Read the results table.</strong> Each row shows the strategy, conversion amount(s), total final portfolio value, and the gain versus converting nothing. The winning strategy is marked ✅ and automatically applied to the sidebar.</div></div>
+        <div class="rm-step"><div class="rm-step-num">4</div><div class="rm-step-body"><strong>Treat the result as a starting point.</strong> The optimizer maximises total final portfolio. Your actual goal may differ — e.g. minimising estate taxes, managing IRMAA, or keeping heirs in lower brackets. Use the Tax Snapshot to understand the year-1 tax cost of the recommended conversion.</div></div>
+        <div class="rm-step"><div class="rm-step-num">5</div><div class="rm-step-body"><strong>Re-run after changing any assumption.</strong> A different inflation rate, return assumption, or life expectancy can materially change the optimal amount.</div></div>
+      </div>
+      <div class="rm-note">
+        <strong>Algorithm:</strong> For Strategy 1 and the early/late legs of Strategy 8, the optimizer uses a coarse $10K grid scan followed by golden-section refinement within ±$20K of the best grid point. The 2D search (Strategy 8) iterates via coordinate descent until both legs converge within $500. If the 2D result doesn't beat the 1D flat, the model falls back to the flat solution.
+      </div>
+    </div>
+  </div>
+
+  <!-- READING RESULTS -->
+  <div class="rm-section">
+    <div class="rm-section-hdr">
+      <span class="icon">📊</span>
+      <div><h2>Reading the Results</h2><p>What each tab shows and the key numbers to watch</p></div>
+    </div>
+    <div class="rm-body">
+      <div class="rm-grid">
+        <div class="rm-card">
+          <h4>Summary Tab</h4>
+          <p>Compares all eight strategies side-by-side. Shows final portfolio, total taxes paid, and total Roth balance. The green-highlighted row is the current strategy. Use this to quickly see the spread between strategies.</p>
+        </div>
+        <div class="rm-card">
+          <h4>Tax Snapshot Tab</h4>
+          <p>Detailed year-by-year tax breakdown. Use the <strong>View Year</strong> selector to inspect any year. Shows income sources, standard deduction (including OBBB senior add-on), bracket waterfall, LTCG analysis, NIIT, IRMAA, and state tax. Key metric: <strong>LTCG headroom</strong> — how far you are from the 20% capital gains threshold.</p>
+        </div>
+        <div class="rm-card">
+          <h4>Projection Tab</h4>
+          <p>Year-by-year table of every cash flow and balance. Orange rows = RMD years. Green rows = surviving spouse. The totals row shows lifetime sums. Scroll right to see all columns.</p>
+        </div>
+        <div class="rm-card">
+          <h4>Monte Carlo Tab</h4>
+          <p>Runs 10,000 simulations drawing from the historical S&P 500 real-return distribution (1926–2024). Shows median, 10th, and 90th percentile outcomes and the probability of not outliving your money. Run this after locking in a strategy.</p>
+        </div>
+      </div>
+
+      <table class="rm-table" style="margin-top:4px">
+        <thead><tr><th>Metric</th><th>What it means</th><th>What to aim for</th></tr></thead>
+        <tbody>
+          <tr><td>LTCG Headroom</td><td>Distance between your ordinary taxable income stack and the 15%→20% LTCG threshold</td><td>&gt; $25K cushion; green badge = safe</td></tr>
+          <tr><td>Effective rate</td><td>Total tax burden (federal + LTCG + NIIT + state + IRMAA) as % of MAGI</td><td>Context-dependent; compare across years</td></tr>
+          <tr><td>Marginal rate</td><td>Federal bracket your last dollar of ordinary income falls in</td><td>Should not jump sharply year-over-year</td></tr>
+          <tr><td>IRMAA</td><td>Medicare premium surcharge; triggered when MAGI exceeds thresholds (~$212K MFJ in 2026)</td><td>Watch in conversion years; consider buffer</td></tr>
+          <tr><td>SS Taxable %</td><td>Up to 85% of SS is taxable; the model calculates this dynamically each year</td><td>Lower conversions can reduce SS taxation</td></tr>
+          <tr><td>P10 / P90 (MC)</td><td>Monte Carlo 10th / 90th percentile portfolio at end of plan</td><td>P10 should still cover basic needs</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- KEY ASSUMPTIONS -->
+  <div class="rm-section">
+    <div class="rm-section-hdr">
+      <span class="icon">📌</span>
+      <div><h2>Key Assumptions &amp; Limitations</h2><p>What the model does and does not model</p></div>
+    </div>
+    <div class="rm-body">
+      <div class="rm-grid">
+        <div class="rm-card green">
+          <h4>What is modeled</h4>
+          <p>Federal ordinary income tax (MFJ / Single brackets), LTCG tax at 0% / 15% / 20%, NIIT (3.8%), IRMAA Medicare surcharges, flat state income tax, Social Security taxation (provisional income formula), RMDs (SECURE 2.0 uniform lifetime table), survivor benefit step-up, and OBBB senior deduction.</p>
+        </div>
+        <div class="rm-card red">
+          <h4>What is NOT modeled</h4>
+          <p>AMT, QBI deduction, itemised deductions, state-level RMD exemptions, Roth 5-year rule, backdoor or mega-backdoor Roth contributions, pension or annuity income, long-term care costs, estate tax, or future tax law changes beyond OBBB.</p>
+        </div>
+        <div class="rm-card amber">
+          <h4>Tax bracket inflation</h4>
+          <p>All 2026 bracket thresholds, standard deductions, IRMAA tiers, and LTCG thresholds are inflated each year using your stated inflation rate. Real brackets are therefore held constant — a simplification vs. actual CPI-based adjustments.</p>
+        </div>
+        <div class="rm-card amber">
+          <h4>Roth 5-year rule</h4>
+          <p>The model does not enforce the 5-year seasoning period on conversion funds. If you plan to draw Roth funds early in retirement, ensure conversions were made at least 5 years prior or that you have sufficient basis.</p>
+        </div>
+        <div class="rm-card amber">
+          <h4>Single growth rate</h4>
+          <p>All three accounts (traditional, Roth, brokerage) grow at the same real rate. In practice, asset allocation may differ. The brokerage account also generates annual taxable yield income on top of the growth rate.</p>
+        </div>
+        <div class="rm-card amber">
+          <h4>RMD approximation</h4>
+          <p>RMDs use a simplified uniform lifetime factor: <code>max(12.2, 26.5 − (age−73) × 0.92)</code>. This closely tracks the IRS table but may differ by 1–3% at extreme ages.</p>
+        </div>
+      </div>
+      <div class="rm-note" style="margin-top:4px">
+        <strong>This tool is for educational and planning purposes only.</strong> It is not tax or financial advice. Consult a CPA or CFP before implementing a Roth conversion strategy. Tax law changes, market returns, and personal circumstances can all materially affect outcomes.
+      </div>
+    </div>
+  </div>
+
+  <!-- VERSION -->
+  <div style="text-align:center;font-size:10px;color:var(--muted);font-family:var(--font-mono);padding-bottom:8px">
+    Roth Conversion Planner v3.8 · OBBB senior deduction · 2026 tax year base
+  </div>
+
+</div>`;
 }
 </script>
 </body>
