@@ -255,6 +255,16 @@ align-items:center;justify-content:center;height:200px;flex-direction:column;gap
     <div class="s-row"><span class="s-label">Older spouse</span><input class="s-input" id="life1" type="number" value="85"></div>
     <div class="s-row"><span class="s-label">Younger spouse</span><input class="s-input" id="life2" type="number" value="90"></div>
 
+    <div class="s-sec">Filing Status</div>
+    <div class="s-row">
+      <span class="s-label">Override filing status</span>
+      <select class="s-input" id="filing_override" style="font-size:11px;padding:2px 4px">
+        <option value="auto">Auto (from life expectancy)</option>
+        <option value="mfj">Always MFJ</option>
+        <option value="single">Always Single</option>
+      </select>
+    </div>
+
     <div class="s-sec">Returns &amp; Inflation</div>
     <div class="s-row"><span class="s-label">Real portfolio growth</span><input class="s-input pct" id="growth" type="number" step="0.1" value="6"><span style="font-size:10px;color:var(--muted)">%</span></div>
     <div class="s-row"><span class="s-label">Inflation rate</span><input class="s-input pct" id="inflation" type="number" step="0.1" value="2.5"><span style="font-size:10px;color:var(--muted)">%</span></div>
@@ -404,6 +414,7 @@ function getA() {
     rmd_age:n('rmd_age'),
     roth_draw_delay: n('roth_draw_delay') ?? 5,
     roth_draw_mode: document.getElementById('roth_draw_mode')?.value || 'primary',
+    filing_override: document.getElementById('filing_override')?.value || 'auto',
   };
   a.ret_year = 2026 + (a.ret_age1 - a.cur_age1);
   return a;
@@ -444,10 +455,14 @@ function computeYear(i, A, prevTrad, prevRoth, prevBrok, stratOverride, first_co
   const ret_age1 = A.ret_age1, ret_age2 = A.ret_age2;
   const age1 = ret_age1 + i;
   const age2  = ret_age2 + i;
-  const al1  = age1 <= A.life1;
-  const al2  = age2 <= A.life2;
+  const al1  = age1 < A.life1;
+  const al2  = age2 < A.life2;
   const either = al1 || al2;
-  const surv = !al1 && al2;          // surviving spouse only
+  // surv = one spouse alive (single filer), regardless of which one died first
+  const surv_auto = (!al1 && al2) || (al1 && !al2);
+  const surv = A.filing_override === 'single' ? true
+             : A.filing_override === 'mfj'    ? false
+             : surv_auto;
   const yr   = A.ret_year + i;
   const f    = Math.pow(1+A.inflation, yr-2026);
 
@@ -494,13 +509,28 @@ function computeYear(i, A, prevTrad, prevRoth, prevBrok, stratOverride, first_co
   // ── OBBB senior bonus deduction (flat $6,000/person, NOT inflation-indexed) ──
   // Phase-out: $60 per $1,000 of MAGI over threshold (Single $75K, MFJ $150K).
   // Fully eliminated at Single $175K / MFJ $250K.
-  // Uses pre-conversion MAGI to avoid circularity (conversion amount depends on
-  // the deduction, which would otherwise depend on the conversion).
+  // We use pre-conversion MAGI with the proper SS provisional income formula
+  // (not a flat 85% approximation) to correctly determine phase-out. Conv is
+  // excluded to avoid circularity with bracket-fill strategies.
   const sen_per   = A.senior_ded;                          // $6,000 flat, unindexed
   const sen_qual1 = al1 && age1 >= 65;
   const sen_qual2 = al2 && age2 >= 65;
   const sen_gross = (sen_qual1 ? sen_per : 0) + (sen_qual2 ? sen_per : 0);
-  const magi_pre  = rmd + dq + dor + ti + ei + ss_approx;  // pre-conversion MAGI proxy
+
+  // Pre-conversion SS taxable using proper provisional income formula
+  const prov_pre     = rmd + dq + dor + ti + ei;           // no conv, no pdraw_gain yet
+  const combined_pre = prov_pre + 0.5 * ss_gross;
+  const tl_pre = (surv ? 25000 : 32000) * f;
+  const th_pre = (surv ? 34000 : 44000) * f;
+  let ss_tax_pre = 0;
+  if (ss_gross > 0) {
+    ss_tax_pre = Math.min(0.85 * ss_gross,
+      combined_pre <= tl_pre ? 0 :
+      combined_pre <= th_pre ? 0.5 * (combined_pre - tl_pre) :
+      0.5 * (th_pre - tl_pre) + 0.85 * (combined_pre - th_pre));
+    ss_tax_pre = Math.max(0, ss_tax_pre);
+  }
+  const magi_pre  = prov_pre + ss_tax_pre;                 // proper pre-conv MAGI proxy
   const sen_thresh= surv ? 75000 : 150000;                 // phase-out start (unindexed)
   const sen_excess= Math.max(0, magi_pre - sen_thresh);
   const sen_reduc = Math.floor(sen_excess / 1000) * 60;    // $60 per $1,000
@@ -672,7 +702,16 @@ function renderProjection(A) {
               'Trad','Roth','Brok','TOTAL'];
 
   let html = `<div class="page-title">Year-by-Year Projection</div>
-<div class="page-sub">Strategy: ${STRAT_NAMES[A.strategy]} | Starts ${A.ret_year} | MFJ → Single at age ${A.life1}</div>
+<div class="page-sub">Strategy: ${STRAT_NAMES[A.strategy]} | Starts ${A.ret_year} | ${
+  A.filing_override === 'single' ? 'Always Single filer' :
+  A.filing_override === 'mfj'    ? 'Always MFJ' :
+  A.life1 <= A.ret_age1 && A.life2 <= A.ret_age2 ? 'No filers alive at retirement' :
+  A.life1 <= A.ret_age1 ? 'Single filer throughout (older already passed)' :
+  A.life2 <= A.ret_age2 ? 'Single filer throughout (younger already passed)' :
+  A.life1 < A.life2 ? 'MFJ → Single at older age ' + A.life1 :
+  A.life2 < A.life1 ? 'MFJ → Single at younger age ' + A.life2 :
+  'MFJ → Single at age ' + A.life1
+}</div>
 <div class="tbl-wrap"><table>
 <thead>
 <tr>
@@ -721,7 +760,7 @@ function renderProjection(A) {
 
   html += '</tbody></table></div>';
   html += `<div class="note-box" style="margin-top:10px;font-size:10px">
-🟠 Orange row = RMD starts (age ${A.rmd_age}) &nbsp;|&nbsp; 🟢 Green rows = surviving spouse (single filer) &nbsp;|&nbsp; 
+🟠 Orange row = RMD starts (age ${A.rmd_age}) &nbsp;|&nbsp; 🟢 Green rows = surviving spouse / single filer &nbsp;|&nbsp; 
 RMD cash flows into brokerage after distribution &nbsp;|&nbsp; Roth draw is tax-free (not in MAGI)
 </div>`;
   $('tab-projection').innerHTML = html;
@@ -843,7 +882,14 @@ function renderSummary(A) {
   <div class="sum-row"><span class="lbl">Older spouse age at retirement</span><span class="val">${A.ret_age1}</span></div>
   <div class="sum-row"><span class="lbl">Younger spouse age at retirement</span><span class="val">${retAge2}</span></div>
   <div class="sum-row"><span class="lbl">Years until RMD</span><span class="val">${A.rmd_age - A.ret_age1}</span></div>
-  <div class="sum-row"><span class="lbl">Years until older spouse passes</span><span class="val">${A.life1 - A.ret_age1}</span></div>
+  <div class="sum-row"><span class="lbl">Years until first spouse passes</span><span class="val">${
+  A.filing_override === 'single' ? 'N/A (Single override)' :
+  A.filing_override === 'mfj'    ? 'N/A (MFJ override)' :
+  Math.min(
+    A.life1 > A.ret_age1 ? A.life1 - A.ret_age1 : 0,
+    A.life2 > A.ret_age2 ? A.life2 - A.ret_age2 : 0
+  ) + ' yrs'
+}</span></div>
 </div>
 
 <div class="sum-card">
@@ -875,7 +921,14 @@ function renderSummary(A) {
   <div class="sum-row"><span class="lbl">Older SS starts</span><span class="val">${retYr+(A.ss1_start_age-A.ret_age1)}</span></div>
   <div class="sum-row"><span class="lbl">Younger SS starts</span><span class="val">${retYr+(A.ss2_start_age-retAge2)}</span></div>
   <div class="sum-row"><span class="lbl">RMD starts</span><span class="val">${retYr+(A.rmd_age-A.ret_age1)}</span></div>
-  <div class="sum-row"><span class="lbl">Single filer starts</span><span class="val">${retYr+(A.life1-A.ret_age1)}</span></div>
+  <div class="sum-row"><span class="lbl">Single filer starts</span><span class="val">${
+  A.filing_override === 'single' ? retYr + ' (override)' :
+  A.filing_override === 'mfj'    ? 'Never (MFJ override)' :
+  A.life1 <= A.ret_age1 ? retYr + ' (older already passed)' :
+  A.life2 <= A.ret_age2 ? retYr + ' (younger already passed)' :
+  A.life1 < A.life2 ? retYr + (A.life1 - A.ret_age1) :
+  retYr + (A.life2 - A.ret_age2)
+}</span></div>
 </div>
 
 <div class="sum-card">
@@ -1007,13 +1060,16 @@ function mcSimulate(returnSeq, A) {
     const gr      = gr_real + A.inflation;               // convert to nominal (linear approx)
     const age1 = A.ret_age1 + i;
     const age2 = A.ret_age2 + i;
-    const al1  = age1 <= A.life1;
-    const al2  = age2 <= A.life2;
+    const al1  = age1 < A.life1;
+    const al2  = age2 < A.life2;
     if (!al1 && !al2) break;
 
     const yr   = A.ret_year + i;
     const f    = Math.pow(1 + A.inflation, yr - 2026);   // nominal inflation factor from 2026
-    const surv = !al1 && al2;
+    const surv_auto = (!al1 && al2) || (al1 && !al2);
+    const surv = A.filing_override === 'single' ? true
+               : A.filing_override === 'mfj'    ? false
+               : surv_auto;
     const tops = surv ? SNG_TOPS : MFJ_TOPS;
     const std  = (surv ? 16100 : A.std_ded) * f;
     const niit_t  = (surv ? 200000 : A.niit_thresh) * f;
