@@ -63,6 +63,8 @@ body{font-family:var(--font-sans);background:#EEF2F8;color:var(--text);display:f
   outline:none;transition:border-color .15s,box-shadow .15s;
 }
 .s-input:focus{border-color:var(--blue);box-shadow:0 0 0 2px rgba(46,117,182,.18)}
+.spouse2-row.disabled-row{opacity:.35;pointer-events:none}
+.spouse2-row.disabled-row input,.spouse2-row.disabled-row select{background:#e8e8e8!important;color:#aaa!important}
 .s-input.pct{width:72px}
 select.s-input{background:#FFFDE7;cursor:pointer}
 .calc-val{
@@ -237,13 +239,22 @@ align-items:center;justify-content:center;height:200px;flex-direction:column;gap
   </div>
   <div id="sidebar-scroll">
 
+    <div class="s-sec">Filing Status</div>
+    <div class="s-row">
+      <span class="s-label">Filing status</span>
+      <select class="s-input" id="filing_override" style="font-size:11px;padding:2px 4px">
+        <option value="auto">Joint (MFJ)</option>
+        <option value="single">Single</option>
+      </select>
+    </div>
+
     <div class="s-sec">Current Ages</div>
-    <div class="s-row"><span class="s-label">Older spouse age</span><input class="s-input" id="cur_age1" type="number" value="44"></div>
-    <div class="s-row"><span class="s-label">Younger spouse age</span><input class="s-input" id="cur_age2" type="number" value="43"></div>
+    <div class="s-row"><span class="s-label" id="lbl-cur-age1">Older spouse age</span><input class="s-input" id="cur_age1" type="number" value="44"></div>
+    <div class="s-row spouse2-row"><span class="s-label">Spouse age</span><input class="s-input" id="cur_age2" type="number" value="43"></div>
 
     <div class="s-sec">Retirement Plan</div>
-    <div class="s-row"><span class="s-label">Older spouse ret. age</span><input class="s-input" id="ret_age1" type="number" value="45"></div>
-    <div class="s-row"><span class="s-label">Younger spouse ret. age</span><input class="s-input" id="ret_age2" type="number" value="45"></div>
+    <div class="s-row"><span class="s-label" id="lbl-ret-age1">Older spouse ret. age</span><input class="s-input" id="ret_age1" type="number" value="45"></div>
+    <div class="s-row spouse2-row"><span class="s-label">Spouse ret. age</span><input class="s-input" id="ret_age2" type="number" value="45"></div>
     <div class="s-row"><span class="s-label">Projection start year</span><span class="calc-val" id="ret_year_disp">—</span></div>
 
     <div class="s-sec">Balances at Retirement</div>
@@ -252,18 +263,8 @@ align-items:center;justify-content:center;height:200px;flex-direction:column;gap
     <div class="s-row"><span class="s-label">Roth IRA</span><input class="s-input" id="roth" type="number" value="100000"></div>
 
     <div class="s-sec">Life Expectancy</div>
-    <div class="s-row"><span class="s-label">Older spouse</span><input class="s-input" id="life1" type="number" value="85"></div>
-    <div class="s-row"><span class="s-label">Younger spouse</span><input class="s-input" id="life2" type="number" value="90"></div>
-
-    <div class="s-sec">Filing Status</div>
-    <div class="s-row">
-      <span class="s-label">Override filing status</span>
-      <select class="s-input" id="filing_override" style="font-size:11px;padding:2px 4px">
-        <option value="auto">Auto (from life expectancy)</option>
-        <option value="mfj">Always MFJ</option>
-        <option value="single">Always Single</option>
-      </select>
-    </div>
+    <div class="s-row"><span class="s-label" id="lbl-life1">Older spouse</span><input class="s-input" id="life1" type="number" value="85"></div>
+    <div class="s-row spouse2-row"><span class="s-label">Spouse life expectancy</span><input class="s-input" id="life2" type="number" value="90"></div>
 
     <div class="s-sec">Returns &amp; Inflation</div>
     <div class="s-row"><span class="s-label">Real portfolio growth</span><input class="s-input pct" id="growth" type="number" step="0.1" value="6"><span style="font-size:10px;color:var(--muted)">%</span></div>
@@ -280,14 +281,14 @@ align-items:center;justify-content:center;height:200px;flex-direction:column;gap
     <div class="s-row"><span class="s-label">Annual spend (2026$)</span><input class="s-input" id="extra_spend" type="number" value="150000"></div>
 
     <div class="s-sec">Social Security (2026$)</div>
-    <div class="s-row"><span class="s-label">Older SS start age</span><input class="s-input" id="ss1_start_age" type="number" value="70"></div>
-    <div class="s-row"><span class="s-label">Older SS benefit</span><input class="s-input" id="ss1_amount" type="number" value="50000"></div>
-    <div class="s-row"><span class="s-label">Younger SS start age</span><input class="s-input" id="ss2_start_age" type="number" value="67"></div>
-    <div class="s-row"><span class="s-label">Younger SS benefit</span><input class="s-input" id="ss2_amount" type="number" value="30000"></div>
+    <div class="s-row"><span class="s-label" id="lbl-ss1-age">Older SS start age</span><input class="s-input" id="ss1_start_age" type="number" value="70"></div>
+    <div class="s-row"><span class="s-label" id="lbl-ss1-amt">Older SS benefit</span><input class="s-input" id="ss1_amount" type="number" value="50000"></div>
+    <div class="s-row spouse2-row"><span class="s-label">Spouse SS start age</span><input class="s-input" id="ss2_start_age" type="number" value="67"></div>
+    <div class="s-row spouse2-row"><span class="s-label">Spouse SS benefit</span><input class="s-input" id="ss2_amount" type="number" value="30000"></div>
 
     <div class="s-sec">Taxes</div>
     <div class="s-row"><span class="s-label">State income tax rate</span><input class="s-input pct" id="state_rate" type="number" step="0.1" value="5.75"><span style="font-size:10px;color:var(--muted)">%</span></div>
-    <div class="s-row"><span class="s-label">NIIT threshold MFJ</span><input class="s-input" id="niit_thresh" type="number" value="250000"></div>
+    <div class="s-row"><span class="s-label" id="lbl-niit">NIIT threshold (MFJ)</span><input class="s-input" id="niit_thresh" type="number" value="250000"></div>
 
     <div class="s-sec">Roth Conversion Strategy</div>
     <div class="s-row">
@@ -320,8 +321,8 @@ align-items:center;justify-content:center;height:200px;flex-direction:column;gap
     <div class="s-row">
       <span class="s-label">Draw mode</span>
       <select class="s-input" id="roth_draw_mode" style="width:140px">
-        <option value="gap">Gap fill only</option>
-        <option value="primary" selected>Primary — Roth first</option>
+        <option value="gap" selected>Gap fill only</option>
+        <option value="primary">Primary — Roth first</option>
       </select>
     </div>
     <div class="s-row" style="background:#EAF4EA;border-left:3px solid #1F6438;padding-left:11px">
@@ -413,10 +414,42 @@ function getA() {
     conv_end_age:n('conv_end_age'), conv_buffer:p('conv_buffer'),
     rmd_age:n('rmd_age'),
     roth_draw_delay: n('roth_draw_delay') ?? 5,
-    roth_draw_mode: document.getElementById('roth_draw_mode')?.value || 'primary',
+    roth_draw_mode: document.getElementById('roth_draw_mode')?.value || 'gap',
     filing_override: document.getElementById('filing_override')?.value || 'auto',
   };
   a.ret_year = 2026 + (a.ret_age1 - a.cur_age1);
+  // Single mode: zero all spouse-2 values so no downstream calc needs changing
+  if (a.filing_override === 'single') {
+    a.ret_age2      = a.ret_age1;
+    a.life2         = a.life1;
+    a.ss2_start_age = 99;
+    a.ss2_amount    = 0;
+  }
+  // Show/hide spouse rows and relabel spouse-1 fields based on filing status
+  const isSingle = a.filing_override === 'single';
+  document.querySelectorAll('.spouse2-row').forEach(el => {
+    el.style.display = isSingle ? 'none' : '';
+  });
+  const lbl = (id, t) => { const el = document.getElementById(id); if (el) el.textContent = t; };
+  if (isSingle) {
+    lbl('lbl-cur-age1', 'Your age');
+    lbl('lbl-ret-age1', 'Your ret. age');
+    lbl('lbl-life1',    'Your life expectancy');
+    lbl('lbl-ss1-age',  'Your SS start age');
+    lbl('lbl-ss1-amt',  'Your SS benefit');
+    lbl('lbl-niit',     'NIIT threshold (Single)');
+    const niitEl = document.getElementById('niit_thresh');
+    if (niitEl && parseFloat(niitEl.value) === 250000) niitEl.value = 200000;
+  } else {
+    lbl('lbl-cur-age1', 'Older spouse age');
+    lbl('lbl-ret-age1', 'Older spouse ret. age');
+    lbl('lbl-life1',    'Older spouse');
+    lbl('lbl-ss1-age',  'Older SS start age');
+    lbl('lbl-ss1-amt',  'Older SS benefit');
+    lbl('lbl-niit',     'NIIT threshold (MFJ)');
+    const niitEl = document.getElementById('niit_thresh');
+    if (niitEl && parseFloat(niitEl.value) === 200000) niitEl.value = 250000;
+  }
   return a;
 }
 
@@ -461,7 +494,7 @@ function computeYear(i, A, prevTrad, prevRoth, prevBrok, stratOverride, first_co
   // surv = one spouse alive (single filer), regardless of which one died first
   const surv_auto = (!al1 && al2) || (al1 && !al2);
   const surv = A.filing_override === 'single' ? true
-             : A.filing_override === 'mfj'    ? false
+             : A.filing_override === 'auto'  ? false
              : surv_auto;
   const yr   = A.ret_year + i;
   const f    = Math.pow(1+A.inflation, yr-2026);
@@ -695,8 +728,8 @@ function renderProjection(A) {
     {label:'BALANCES',cols:4,color:'#1F6438'},
   ];
 
-  const hdrs=['Year','Sp1','Sp2',
-              'RMD','Conv','Qual Div','Ord Div','Tax Int','Ex Int','SS1','SS2','SS Tax','P.Draw','Roth Draw',
+  const hdrs=['Year','Sp1',...(A.filing_override==='single'?[]:['Sp2']),
+              'RMD','Conv','Qual Div','Ord Div','Tax Int','Ex Int','SS1',...(A.filing_override==='single'?[]:['SS2']),'SS Tax','P.Draw','Roth Draw',
               'Ord Inc','Cap Inc','MAGI',
               'Fed Ord','Fed LTCG','NIIT','State','IRMAA','Total Tax','Marg%','Eff%',
               'Trad','Roth','Brok','TOTAL'];
@@ -704,7 +737,7 @@ function renderProjection(A) {
   let html = `<div class="page-title">Year-by-Year Projection</div>
 <div class="page-sub">Strategy: ${STRAT_NAMES[A.strategy]} | Starts ${A.ret_year} | ${
   A.filing_override === 'single' ? 'Always Single filer' :
-  A.filing_override === 'mfj'    ? 'Always MFJ' :
+  A.filing_override === 'auto'  ? 'Joint (MFJ)' :
   A.life1 <= A.ret_age1 && A.life2 <= A.ret_age2 ? 'No filers alive at retirement' :
   A.life1 <= A.ret_age1 ? 'Single filer throughout (older already passed)' :
   A.life2 <= A.ret_age2 ? 'Single filer throughout (younger already passed)' :
@@ -715,8 +748,8 @@ function renderProjection(A) {
 <div class="tbl-wrap"><table>
 <thead>
 <tr>
-  <th colspan="3" style="background:#1F3864">DATES</th>
-  <th colspan="11" style="background:#1F4E79">INCOME STREAMS</th>
+  <th colspan="${A.filing_override==='single'?2:3}" style="background:#1F3864">DATES</th>
+  <th colspan="${A.filing_override==='single'?9:11}" style="background:#1F4E79">INCOME STREAMS</th>
   <th colspan="3" style="background:#1F3864">INCOME TOTALS</th>
   <th colspan="7" style="background:#7B2A00">TAXES &amp; RATES</th>
   <th colspan="4" style="background:#1F6438">BALANCES</th>
@@ -727,11 +760,11 @@ function renderProjection(A) {
   rows.forEach((r, idx) => {
     const cls = r.surv ? 'surv' : (r.age1 === A.rmd_age ? 'rmd-yr' : (idx%2===0?'strip':''));
     html += `<tr class="${cls}">
-<td class="yr">${r.yr}</td><td class="age">${r.age1}</td><td class="age">${r.age2}</td>
+<td class="yr">${r.yr}</td><td class="age">${r.age1}</td>${A.filing_override==='single'?'':'<td class="age">'+r.age2+'</td>'}
 <td class="tax">${fmt(r.rmd)}</td>
 <td class="conv">${fmt(r.conv)}</td>
 <td>${fmt(r.dq)}</td><td>${fmt(r.dor)}</td><td>${fmt(r.ti)}</td><td>${fmt(r.ei)}</td>
-<td>${fmt(r.s1)}</td><td>${fmt(r.s2)}</td><td class="tax">${fmt(r.ss_tax)}</td>
+<td>${fmt(r.s1)}</td>${A.filing_override==='single'?'':'<td>'+fmt(r.s2)+'</td>'}<td class="tax">${fmt(r.ss_tax)}</td>
 <td>${fmt(r.pdraw)}</td><td class="roth-bal">${fmt(r.roth_draw)}</td>
 <td>${fmt(r.ord_inc)}</td><td>${fmt(r.cap_inc)}</td><td class="big">${fmt(r.magi)}</td>
 <td class="tax">${fmt(r.fed_ord)}</td><td class="tax">${fmt(r.fed_ltcg)}</td>
@@ -884,7 +917,7 @@ function renderSummary(A) {
   <div class="sum-row"><span class="lbl">Years until RMD</span><span class="val">${A.rmd_age - A.ret_age1}</span></div>
   <div class="sum-row"><span class="lbl">Years until first spouse passes</span><span class="val">${
   A.filing_override === 'single' ? 'N/A (Single override)' :
-  A.filing_override === 'mfj'    ? 'N/A (MFJ override)' :
+  A.filing_override === 'auto'  ? 'N/A (Joint MFJ)' :
   Math.min(
     A.life1 > A.ret_age1 ? A.life1 - A.ret_age1 : 0,
     A.life2 > A.ret_age2 ? A.life2 - A.ret_age2 : 0
@@ -923,7 +956,7 @@ function renderSummary(A) {
   <div class="sum-row"><span class="lbl">RMD starts</span><span class="val">${retYr+(A.rmd_age-A.ret_age1)}</span></div>
   <div class="sum-row"><span class="lbl">Single filer starts</span><span class="val">${
   A.filing_override === 'single' ? retYr + ' (override)' :
-  A.filing_override === 'mfj'    ? 'Never (MFJ override)' :
+  A.filing_override === 'auto'  ? 'Never (Joint MFJ)' :
   A.life1 <= A.ret_age1 ? retYr + ' (older already passed)' :
   A.life2 <= A.ret_age2 ? retYr + ' (younger already passed)' :
   A.life1 < A.life2 ? retYr + (A.life1 - A.ret_age1) :
@@ -1068,7 +1101,7 @@ function mcSimulate(returnSeq, A) {
     const f    = Math.pow(1 + A.inflation, yr - 2026);   // nominal inflation factor from 2026
     const surv_auto = (!al1 && al2) || (al1 && !al2);
     const surv = A.filing_override === 'single' ? true
-               : A.filing_override === 'mfj'    ? false
+               : A.filing_override === 'auto'  ? false
                : surv_auto;
     const tops = surv ? SNG_TOPS : MFJ_TOPS;
     const std  = (surv ? 16100 : A.std_ded) * f;
