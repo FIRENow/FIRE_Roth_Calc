@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Roth Conversion Planner v3.8</title>
+<title>Roth Conversion Planner v4.0</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -235,7 +235,7 @@ align-items:center;justify-content:center;height:200px;flex-direction:column;gap
 <div id="sidebar">
   <div id="sidebar-header">
     <h1>Roth Conversion Planner</h1>
-    <p>v3.8 · OBBB senior deduction · Change any input — all tabs update instantly</p>
+    <p>v4.0 · Separate spouse IRAs · Nominal growth · Improved Monte Carlo</p>
   </div>
   <div id="sidebar-scroll">
 
@@ -258,7 +258,8 @@ align-items:center;justify-content:center;height:200px;flex-direction:column;gap
     <div class="s-row"><span class="s-label">Projection start year</span><span class="calc-val" id="ret_year_disp">—</span></div>
 
     <div class="s-sec">Balances at Retirement</div>
-    <div class="s-row"><span class="s-label">Traditional 401k / IRA</span><input class="s-input" id="trad" type="number" value="1500000"></div>
+    <div class="s-row"><span class="s-label" id="lbl-trad1">Older spouse IRA/401k</span><input class="s-input" id="trad1" type="number" value="1200000"></div>
+    <div class="s-row spouse2-row"><span class="s-label">Younger spouse IRA/401k</span><input class="s-input" id="trad2" type="number" value="300000"></div>
     <div class="s-row"><span class="s-label">Taxable brokerage</span><input class="s-input" id="brok" type="number" value="3000000"></div>
     <div class="s-row"><span class="s-label">Roth IRA</span><input class="s-input" id="roth" type="number" value="100000"></div>
 
@@ -267,8 +268,11 @@ align-items:center;justify-content:center;height:200px;flex-direction:column;gap
     <div class="s-row spouse2-row"><span class="s-label">Spouse life expectancy</span><input class="s-input" id="life2" type="number" value="90"></div>
 
     <div class="s-sec">Returns &amp; Inflation</div>
-    <div class="s-row"><span class="s-label">Real portfolio growth</span><input class="s-input pct" id="growth" type="number" step="0.1" value="6"><span style="font-size:10px;color:var(--muted)">%</span></div>
-    <div class="s-row"><span class="s-label">Inflation rate</span><input class="s-input pct" id="inflation" type="number" step="0.1" value="2.5"><span style="font-size:10px;color:var(--muted)">%</span></div>
+    <div class="s-row"><span class="s-label">Nominal portfolio growth <span style="font-size:9px;color:var(--blue)" title="Total return including inflation. Real return = nominal − inflation. RMDs are calculated on nominal balances.">[?]</span></span><input class="s-input pct" id="growth" type="number" step="0.1" value="6.5" oninput="updateRealReturnDisplay()"><span style="font-size:10px;color:var(--muted)">%</span></div>
+    <div class="s-row" style="background:#EAF4EA;border-left:3px solid #1F6438;padding:3px 14px">
+      <span class="s-label" style="font-size:10px;color:#1F6438">↳ Real return (after inflation): <strong id="real-return-display">6.0%</strong></span>
+    </div>
+    <div class="s-row"><span class="s-label">Inflation rate</span><input class="s-input pct" id="inflation" type="number" step="0.1" value="2.5" oninput="updateRealReturnDisplay()"><span style="font-size:10px;color:var(--muted)">%</span></div>
     <div class="s-row"><span class="s-label">Brokerage cost basis</span><input class="s-input pct" id="cost_basis" type="number" step="1" value="75"><span style="font-size:10px;color:var(--muted)">%</span></div>
 
     <div class="s-sec">Brokerage Yield (% of balance)</div>
@@ -313,8 +317,9 @@ align-items:center;justify-content:center;height:200px;flex-direction:column;gap
     <div class="s-row"><span class="s-label">Stop conversions at age</span><input class="s-input" id="conv_end_age" type="number" value="75"><span style="font-size:10px;color:var(--muted)">older sp.</span></div>
     <div class="s-row"><span class="s-label">Bracket headroom buffer</span><input class="s-input pct" id="conv_buffer" type="number" step="1" value="0"><span style="font-size:10px;color:var(--muted)">%</span></div>
 
-    <div class="s-sec">RMD</div>
-    <div class="s-row"><span class="s-label">RMD start age</span><input class="s-input" id="rmd_age" type="number" value="75"></div>
+    <div class="s-sec">RMD Start Ages</div>
+    <div class="s-row"><span class="s-label" id="lbl-rmd1">Older spouse RMD age</span><input class="s-input" id="rmd_age1" type="number" value="75"></div>
+    <div class="s-row spouse2-row"><span class="s-label">Younger spouse RMD age</span><input class="s-input" id="rmd_age2" type="number" value="75"></div>
 
     <div class="s-sec">Roth Draw Strategy</div>
     <div class="s-row"><span class="s-label">Roth draw delay (yrs after 1st conversion)</span><input class="s-input" id="roth_draw_delay" type="number" value="5"></div>
@@ -371,6 +376,7 @@ const IRMAA_AMT =[0,2082,5214,8346,11478,14616];
 const NYRS = 55;
 const STRAT_NAMES = ['','1 – Flat','2 – Fill 10%','3 – Fill 12%','4 – Fill 22%','5 – Fill 24%','6 – Fill 32%','7 – Pre-RMD 32%','8 – 2-Period Flat'];
 
+// Historical S&P 500 REAL returns 1926–2024 (99 years)
 const SP500_REAL = [
    0.1162,-0.0856, 0.3681,-0.1012,-0.2450,-0.4391,-0.0874, 0.5356, 0.0153,-0.0507,
    0.2992,-0.3517, 0.2857, 0.0036,-0.0997,-0.1190, 0.1967, 0.2545, 0.1961, 0.2897,
@@ -384,6 +390,23 @@ const SP500_REAL = [
    0.0954, 0.1942,-0.0623, 0.2888,-0.0623, 0.1840, 0.2689,-0.1911, 0.2408,
 ];
 
+// Historical US CPI inflation rates 1926–2024 (matched to SP500_REAL years)
+const CPI_HIST = [
+  0.0145,-0.0200,-0.0115,-0.0103,-0.0970,-0.1027, 0.0025, 0.0131, 0.0252, 0.0152,
+  0.0296,-0.0230, 0.0263, 0.0000,-0.0071, 0.0088, 0.0297, 0.0305, 0.0232, 0.0171,
+  0.0596, 0.0596, 0.0885, 0.0299,-0.0207, 0.0235, 0.0225, 0.0187, 0.0354, 0.0036,
+  0.0072, 0.0295, 0.0228, 0.0250, 0.0330, 0.0169, 0.0298, 0.0186, 0.0157, 0.0056,
+  0.0191, 0.0323, 0.0340, 0.0295, 0.0381, 0.0393, 0.0660, 0.0907, 0.0545, 0.0480,
+  0.0693, 0.0486, 0.0670, 0.0900, 0.1352, 0.1025, 0.0616, 0.0322, 0.0423, 0.0395,
+  0.0381, 0.0391, 0.0356, 0.0441, 0.0446, 0.0610, 0.0306, 0.0290, 0.0274, 0.0266,
+  0.0334, 0.0235, 0.0155, 0.0222, 0.0182, 0.0340, 0.0284, 0.0251, 0.0330, 0.0347,
+  0.0016, 0.0271, 0.0815, 0.0036, 0.0164, 0.0321, 0.0207, 0.0146, 0.0076, 0.0207,
+  0.0212, 0.0247, 0.0179, 0.0122, 0.0144, 0.0702, 0.0865, 0.0396, 0.0335,
+];
+
+// Build paired (real-return, inflation) index array for block sampling
+const HIST_PAIRS = SP500_REAL.map((r,i) => ({ ret: r, infl: CPI_HIST[i] || 0.025 }));
+
 // ════════════════════════════════════════════════════════════════════
 // HELPERS
 // ════════════════════════════════════════════════════════════════════
@@ -394,6 +417,14 @@ const fmtP = v => (v*100).toFixed(1)+'%';
 const fmtN = v => Math.round(v).toLocaleString();
 const round= v => Math.round(v);
 
+function updateRealReturnDisplay() {
+  const g = parseFloat(document.getElementById('growth')?.value) || 0;
+  const inf = parseFloat(document.getElementById('inflation')?.value) || 0;
+  const real = g - inf;
+  const el = document.getElementById('real-return-display');
+  if (el) el.textContent = real.toFixed(1) + '%';
+}
+
 function getA() {
   const g = id => parseFloat($(id).value)||0;
   const n = id => parseInt($(id).value)||0;
@@ -401,7 +432,7 @@ function getA() {
   const a = {
     cur_age1:n('cur_age1'), cur_age2:n('cur_age2'),
     ret_age1:n('ret_age1'), ret_age2:n('ret_age2'),
-    trad:g('trad'), brok:g('brok'), roth:g('roth'),
+    trad1:g('trad1'), trad2:g('trad2'||0), brok:g('brok'), roth:g('roth'),
     life1:n('life1'), life2:n('life2'),
     growth:p('growth'), inflation:p('inflation'), cost_basis:p('cost_basis'),
     div_qual_yield:p('div_qual_yield'), div_ord_yield:p('div_ord_yield'),
@@ -412,18 +443,22 @@ function getA() {
     state_rate:p('state_rate'), std_ded:32200, senior_ded:6000, niit_thresh:g('niit_thresh'),
     strategy:n('strategy'), flat_conv:g('flat_conv'), flat_conv_late:g('flat_conv_late') ?? g('flat_conv') ?? 0,
     conv_end_age:n('conv_end_age'), conv_buffer:p('conv_buffer'),
-    rmd_age:n('rmd_age'),
+    rmd_age1:n('rmd_age1'), rmd_age2:n('rmd_age2'),
     roth_draw_delay: n('roth_draw_delay') ?? 5,
     roth_draw_mode: document.getElementById('roth_draw_mode')?.value || 'gap',
     filing_override: document.getElementById('filing_override')?.value || 'auto',
   };
   a.ret_year = 2026 + (a.ret_age1 - a.cur_age1);
+  a.trad = a.trad1 + (a.trad2 || 0);  // combined for legacy use
   // Single mode: zero all spouse-2 values so no downstream calc needs changing
   if (a.filing_override === 'single') {
     a.ret_age2      = a.ret_age1;
     a.life2         = a.life1;
     a.ss2_start_age = 99;
     a.ss2_amount    = 0;
+    a.trad2         = 0;
+    a.trad          = a.trad1;
+    a.rmd_age2      = a.rmd_age1;
   }
   // Show/hide spouse rows and relabel spouse-1 fields based on filing status
   const isSingle = a.filing_override === 'single';
@@ -438,6 +473,8 @@ function getA() {
     lbl('lbl-ss1-age',  'Your SS start age');
     lbl('lbl-ss1-amt',  'Your SS benefit');
     lbl('lbl-niit',     'NIIT threshold (Single)');
+    lbl('lbl-trad1',    'Your IRA/401k');
+    lbl('lbl-rmd1',     'Your RMD age');
     const niitEl = document.getElementById('niit_thresh');
     if (niitEl && parseFloat(niitEl.value) === 250000) niitEl.value = 200000;
   } else {
@@ -447,6 +484,8 @@ function getA() {
     lbl('lbl-ss1-age',  'Older SS start age');
     lbl('lbl-ss1-amt',  'Older SS benefit');
     lbl('lbl-niit',     'NIIT threshold (MFJ)');
+    lbl('lbl-trad1',    'Older spouse IRA/401k');
+    lbl('lbl-rmd1',     'Older spouse RMD age');
     const niitEl = document.getElementById('niit_thresh');
     if (niitEl && parseFloat(niitEl.value) === 200000) niitEl.value = 250000;
   }
@@ -484,7 +523,8 @@ function marginalRate(ti, tops, f) {
 // ════════════════════════════════════════════════════════════════════
 // CORE SIMULATION — one year
 // ════════════════════════════════════════════════════════════════════
-function computeYear(i, A, prevTrad, prevRoth, prevBrok, stratOverride, first_conv_yr) {
+function computeYear(i, A, prevTrad1, prevTrad2, prevRoth, prevBrok, stratOverride, first_conv_yr) {
+  const prevTrad = prevTrad1 + prevTrad2;  // combined for conversion/bracket calcs
   const ret_age1 = A.ret_age1, ret_age2 = A.ret_age2;
   const age1 = ret_age1 + i;
   const age2  = ret_age2 + i;
@@ -509,14 +549,21 @@ function computeYear(i, A, prevTrad, prevRoth, prevBrok, stratOverride, first_co
   const mfj10=(23200*f), mfj12=(94300*f), mfj22=(201050*f), mfj24=(383900*f), mfj32=(487450*f);
   const sng10=(11600*f), sng12=(47150*f), sng22=(100525*f), sng24=(191950*f), sng32=(243725*f);
 
-  // RMD
+  // RMD — each spouse's IRA has its own balance and RMD start age
   let rmd = 0;
-  if (prevTrad > 0) {
+  if (prevTrad1 > 0 && al1 && age1 >= A.rmd_age1) {
     const lf1 = Math.max(12.2, 26.5-(age1-73)*0.92);
-    const lf2 = Math.max(12.2, 26.5-(age2-73)*0.92);
-    if (al1 && age1 >= A.rmd_age) rmd = prevTrad / lf1;
-    else if (!al1 && al2 && age2 >= A.rmd_age) rmd = prevTrad / lf2;
-    rmd = Math.round(rmd);
+    rmd += Math.round(prevTrad1 / lf1);
+  }
+  if (prevTrad2 > 0) {
+    if (al2 && age2 >= A.rmd_age2) {
+      const lf2 = Math.max(12.2, 26.5-(age2-73)*0.92);
+      rmd += Math.round(prevTrad2 / lf2);
+    } else if (!al2 && al1 && age2 >= A.rmd_age2) {
+      // younger spouse alive alone (older passed) — use younger's balance/age for remaining RMD
+      const lf2 = Math.max(12.2, 26.5-(age2-73)*0.92);
+      rmd += Math.round(prevTrad2 / lf2);
+    }
   }
 
   // Income from brokerage (scales with prior balance)
@@ -586,11 +633,11 @@ function computeYear(i, A, prevTrad, prevRoth, prevBrok, stratOverride, first_co
   const f22 = either ? Math.min(room22, prevTrad) : 0;
   const f24 = either ? Math.min(room24, prevTrad) : 0;
   const f32 = either ? Math.min(room32, prevTrad) : 0;
-  const fpre= (either && age1 < A.rmd_age) ? Math.min(room32, prevTrad) : 0;
+  const fpre= (either && age1 < A.rmd_age11) ? Math.min(room32, prevTrad) : 0;
 
   // Strategy 8: two-period flat — flat_conv before RMD age, flat_conv_late after
   const flat_conv_late_nom = (A.flat_conv_late ?? A.flat_conv) * f;
-  const f2p = either ? Math.min(age1 < A.rmd_age ? flat_conv_nom : flat_conv_late_nom, prevTrad) : 0;
+  const f2p = either ? Math.min(age1 < A.rmd_age11 ? flat_conv_nom : flat_conv_late_nom, prevTrad) : 0;
 
   const strat = stratOverride || A.strategy;
   let conv = Math.max(0, [0,ff,f10,f12,f22,f24,f32,fpre,f2p][strat] || 0);
@@ -671,9 +718,18 @@ function computeYear(i, A, prevTrad, prevRoth, prevBrok, stratOverride, first_co
   const marg = ord_inc > 0 ? marginalRate(ti2, tops, f) : 0;
   const eff  = magi > 0 ? total_tax / magi : 0;
 
-  // End-of-year balances
+  // End-of-year balances — growth is NOMINAL (includes inflation)
   const g = A.growth;
-  const trad_new = round(Math.max(0, (prevTrad - rmd - conv) * (1+g)));
+  // Split conversion proportionally between the two IRA accounts
+  const tradTotal = prevTrad1 + prevTrad2;
+  const conv1 = tradTotal > 0 ? conv * (prevTrad1 / tradTotal) : conv;
+  const conv2 = tradTotal > 0 ? conv * (prevTrad2 / tradTotal) : 0;
+  // RMD proportionally from each spouse's IRA
+  const rmd1 = tradTotal > 0 && prevTrad1 > 0 ? rmd * (prevTrad1 / tradTotal) : (prevTrad1 > 0 ? rmd : 0);
+  const rmd2 = rmd - rmd1;
+  const trad1_new = round(Math.max(0, (prevTrad1 - rmd1 - conv1) * (1+g)));
+  const trad2_new = round(Math.max(0, (prevTrad2 - rmd2 - conv2) * (1+g)));
+  const trad_new  = trad1_new + trad2_new;
   const roth_new = round(Math.max(0, (prevRoth + conv - roth_draw) * (1+g)));
   // Brokerage: deduct all yield-income + pdraw, add gross RMD cash (taxed separately), deduct taxes
   const brok_new = round(Math.max(0, (prevBrok - dq - dor - ti - ei - pdraw + rmd) * (1+g) - total_tax));
@@ -687,7 +743,7 @@ function computeYear(i, A, prevTrad, prevRoth, prevBrok, stratOverride, first_co
     ord_inc, cap_inc, magi,
     fed_ord, fed_ltcg, niit, state_tax, irmaa, total_tax,
     marg, eff,
-    trad:trad_new, roth:roth_new, brok:brok_new,
+    trad1:trad1_new, trad2:trad2_new, trad:trad_new, roth:roth_new, brok:brok_new,
     total: trad_new + roth_new + brok_new,
   };
 }
@@ -696,14 +752,14 @@ function computeYear(i, A, prevTrad, prevRoth, prevBrok, stratOverride, first_co
 // RUN FULL PROJECTION
 // ════════════════════════════════════════════════════════════════════
 function runProjection(A, stratOverride) {
-  let trad=A.trad, roth=A.roth, brok=A.brok;
+  let trad1=A.trad1, trad2=A.trad2||0, roth=A.roth, brok=A.brok;
   let first_conv_yr = null;  // set the first year a conversion > 0 actually occurs
   const rows = [];
   for (let i=0; i<NYRS; i++) {
-    const row = computeYear(i, A, trad, roth, brok, stratOverride, first_conv_yr);
+    const row = computeYear(i, A, trad1, trad2, roth, brok, stratOverride, first_conv_yr);
     if (row.conv > 0 && first_conv_yr === null) first_conv_yr = row.yr;
     rows.push(row);
-    trad = row.trad; roth = row.roth; brok = row.brok;
+    trad1 = row.trad1; trad2 = row.trad2; roth = row.roth; brok = row.brok;
     if (!row.al1 && !row.al2) break;
   }
   return rows;
@@ -758,7 +814,7 @@ function renderProjection(A) {
 </thead><tbody>`;
 
   rows.forEach((r, idx) => {
-    const cls = r.surv ? 'surv' : (r.age1 === A.rmd_age ? 'rmd-yr' : (idx%2===0?'strip':''));
+    const cls = r.surv ? 'surv' : (r.age1 === A.rmd_age1 ? 'rmd-yr' : (idx%2===0?'strip':''));
     html += `<tr class="${cls}">
 <td class="yr">${r.yr}</td><td class="age">${r.age1}</td>${A.filing_override==='single'?'':'<td class="age">'+r.age2+'</td>'}
 <td class="tax">${fmt(r.rmd)}</td>
@@ -793,7 +849,7 @@ function renderProjection(A) {
 
   html += '</tbody></table></div>';
   html += `<div class="note-box" style="margin-top:10px;font-size:10px">
-🟠 Orange row = RMD starts (age ${A.rmd_age}) &nbsp;|&nbsp; 🟢 Green rows = surviving spouse / single filer &nbsp;|&nbsp; 
+🟠 Orange row = RMD starts (sp1 age ${A.rmd_age1}, sp2 age ${A.rmd_age2}) &nbsp;|&nbsp; 🟢 Green rows = surviving spouse / single filer &nbsp;|&nbsp; 
 RMD cash flows into brokerage after distribution &nbsp;|&nbsp; Roth draw is tax-free (not in MAGI)
 </div>`;
   $('tab-projection').innerHTML = html;
@@ -914,7 +970,7 @@ function renderSummary(A) {
   <div class="sum-row"><span class="lbl">Projection start year</span><span class="val">${retYr}</span></div>
   <div class="sum-row"><span class="lbl">Older spouse age at retirement</span><span class="val">${A.ret_age1}</span></div>
   <div class="sum-row"><span class="lbl">Younger spouse age at retirement</span><span class="val">${retAge2}</span></div>
-  <div class="sum-row"><span class="lbl">Years until RMD</span><span class="val">${A.rmd_age - A.ret_age1}</span></div>
+  <div class="sum-row"><span class="lbl">Years until RMD</span><span class="val">${A.rmd_age1 - A.ret_age1}</span></div>
   <div class="sum-row"><span class="lbl">Years until first spouse passes</span><span class="val">${
   A.filing_override === 'single' ? 'N/A (Single override)' :
   A.filing_override === 'auto'  ? 'N/A (Joint MFJ)' :
@@ -953,7 +1009,7 @@ function renderSummary(A) {
   <div class="sum-row"><span class="lbl">Younger Medicare (age 65)</span><span class="val">${retYr+(65-retAge2)}</span></div>
   <div class="sum-row"><span class="lbl">Older SS starts</span><span class="val">${retYr+(A.ss1_start_age-A.ret_age1)}</span></div>
   <div class="sum-row"><span class="lbl">Younger SS starts</span><span class="val">${retYr+(A.ss2_start_age-retAge2)}</span></div>
-  <div class="sum-row"><span class="lbl">RMD starts</span><span class="val">${retYr+(A.rmd_age-A.ret_age1)}</span></div>
+  <div class="sum-row"><span class="lbl">RMD starts</span><span class="val">${retYr+(A.rmd_age1-A.ret_age1)}</span></div>
   <div class="sum-row"><span class="lbl">Single filer starts</span><span class="val">${
   A.filing_override === 'single' ? retYr + ' (override)' :
   A.filing_override === 'auto'  ? 'Never (Joint MFJ)' :
@@ -1077,28 +1133,28 @@ const N_SIMS = 10000;
 let mcResults = null;
 let mcRunning = false;
 
-function mcSimulate(returnSeq, A) {
-  // All balances and flows are in NOMINAL dollars throughout.
-  // gr from SP500_REAL is a REAL return; convert to nominal: gr_nom = gr + inflation (approx).
-  // Brackets/SS/spending are inflated by f = (1+inflation)^(yr-2026) — consistent with nominal.
-  // At end, deflate portfolio to real 2026$ for display.
-  let trad = A.trad, roth = A.roth, brok = A.brok;
+function mcSimulate(returnSeq, inflSeq, A) {
+  // All balances in NOMINAL dollars. returnSeq are NOMINAL returns (real + inflation).
+  // inflSeq are the matched inflation rates for each year (for RMD bracket calcs).
+  let trad1 = A.trad1, trad2 = A.trad2||0, roth = A.roth, brok = A.brok;
+  let trad = trad1 + trad2;
   const planYrs = A.life2 - A.ret_age2 + 1;
   let brok_dep = null;
   let mc_first_conv_yr = null;  // first year a conversion actually occurs
   const portfolio = [];
 
   for (let i = 0; i < Math.min(planYrs, returnSeq.length); i++) {
-    const gr_real = returnSeq[i];                        // real S&P return this year
-    const gr      = gr_real + A.inflation;               // convert to nominal (linear approx)
+    const gr      = returnSeq[i];                           // nominal return this year (already nominal)
+    const yr_infl = inflSeq ? inflSeq[i] : A.inflation;    // variable inflation for this year
     const age1 = A.ret_age1 + i;
     const age2 = A.ret_age2 + i;
     const al1  = age1 < A.life1;
     const al2  = age2 < A.life2;
     if (!al1 && !al2) break;
 
+    // Cumulative nominal inflation factor from 2026 (using stated A.inflation for bracket scaling)
     const yr   = A.ret_year + i;
-    const f    = Math.pow(1 + A.inflation, yr - 2026);   // nominal inflation factor from 2026
+    const f    = Math.pow(1 + A.inflation, yr - 2026);
     const surv_auto = (!al1 && al2) || (al1 && !al2);
     const surv = A.filing_override === 'single' ? true
                : A.filing_override === 'auto'  ? false
@@ -1115,14 +1171,22 @@ function mcSimulate(returnSeq, A) {
     const bkt12 = (surv ? 47150  : 94300)  * f;
     const bkt10 = (surv ? 11600  : 23200)  * f;
 
-    // RMD
+    // RMD — per-spouse IRA balances and RMD ages
     let rmd = 0;
-    if (trad > 0) {
+    if (trad1 > 0 && al1 && age1 >= A.rmd_age1) {
       const lf1 = Math.max(12.2, 26.5 - (age1 - 73) * 0.92);
-      const lf2 = Math.max(12.2, 26.5 - (age2 - 73) * 0.92);
-      if (al1 && age1 >= A.rmd_age)             rmd = Math.round(trad / lf1);
-      else if (!al1 && al2 && age2 >= A.rmd_age) rmd = Math.round(trad / lf2);
+      rmd += Math.round(trad1 / lf1);
     }
+    if (trad2 > 0) {
+      if (al2 && age2 >= A.rmd_age2) {
+        const lf2 = Math.max(12.2, 26.5 - (age2 - 73) * 0.92);
+        rmd += Math.round(trad2 / lf2);
+      } else if (!al2 && al1 && age2 >= A.rmd_age2) {
+        const lf2 = Math.max(12.2, 26.5 - (age2 - 73) * 0.92);
+        rmd += Math.round(trad2 / lf2);
+      }
+    }
+    trad = trad1 + trad2;
 
     // Brokerage yield income (nominal — scales with nominal brok balance)
     const dq  = Math.round(brok * A.div_qual_yield);
@@ -1146,20 +1210,20 @@ function mcSimulate(returnSeq, A) {
     let conv = 0;
     if (either) {
       if      (strat === 1) conv = Math.min(A.flat_conv * f, trad);
-      else if (strat === 8) conv = Math.min((age1 < A.rmd_age ? A.flat_conv : (A.flat_conv_late ?? A.flat_conv)) * f, trad);
+      else if (strat === 8) conv = Math.min((age1 < A.rmd_age1 ? A.flat_conv : (A.flat_conv_late ?? A.flat_conv)) * f, trad);
       else if (strat === 2) conv = Math.min(room(bkt10), trad);
       else if (strat === 3) conv = Math.min(room(bkt12), trad);
       else if (strat === 4) conv = Math.min(room(bkt22), trad);
       else if (strat === 5) conv = Math.min(room(bkt24), trad);
       else if (strat === 6) conv = Math.min(room(bkt32), trad);
-      else if (strat === 7) conv = age1 < A.rmd_age ? Math.min(room(bkt32), trad) : 0;
+      else if (strat === 7) conv = age1 < A.rmd_age1 ? Math.min(room(bkt32), trad) : 0;
       conv = Math.max(0, conv);
     }
     // Stop conversions after conv_end_age (0 = no limit)
     if (A.conv_end_age > 0 && age1 > A.conv_end_age) conv = 0;
     // Bracket headroom buffer
     if (conv > 0 && A.conv_buffer > 0) {
-      const roomUsed = [0,A.flat_conv*f,room(bkt10),room(bkt12),room(bkt22),room(bkt24),room(bkt32),room(bkt32),(age1<A.rmd_age?A.flat_conv:A.flat_conv_late??A.flat_conv)*f][strat] || 0;
+      const roomUsed = [0,A.flat_conv*f,room(bkt10),room(bkt12),room(bkt22),room(bkt24),room(bkt32),room(bkt32),(age1<A.rmd_age1?A.flat_conv:A.flat_conv_late??A.flat_conv)*f][strat] || 0;
       conv = Math.max(0, Math.min(conv, roomUsed * (1 - A.conv_buffer)));
     }
 
@@ -1217,12 +1281,21 @@ function mcSimulate(returnSeq, A) {
     const yr_tax   = Math.round(fed_ord + fed_ltcg + niit_amt + state + irmaa);
 
     // Update nominal balances with nominal random return
-    const trad_new = Math.max(0, Math.round((trad - rmd - conv) * (1 + gr)));
+    // Split conv and rmd proportionally across trad1/trad2
+    const tradTot = trad1 + trad2;
+    const c1 = tradTot > 0 ? conv * (trad1 / tradTot) : conv;
+    const c2 = tradTot > 0 ? conv * (trad2 / tradTot) : 0;
+    const r1 = tradTot > 0 && trad1 > 0 ? rmd * (trad1 / tradTot) : (trad1 > 0 ? rmd : 0);
+    const r2 = rmd - r1;
+    trad1 = Math.max(0, Math.round((trad1 - r1 - c1) * (1 + gr)));
+    trad2 = Math.max(0, Math.round((trad2 - r2 - c2) * (1 + gr)));
+    const trad_new = trad1 + trad2;
     const roth_new = Math.max(0, Math.round((roth + conv - roth_draw) * (1 + gr)));
     const brok_new = Math.max(0, Math.round((brok - dq - dor - ti - ei - pdraw + rmd) * (1 + gr) - yr_tax));
 
     if (brok > 1000 && brok_new < 1000 && !brok_dep) brok_dep = yr;
-    trad = trad_new; roth = roth_new; brok = brok_new;
+    roth = roth_new; brok = brok_new;
+    trad = trad1 + trad2;
 
     // Deflate to real 2026$ for display: divide by cumulative inflation from 2026
     const real_total = (trad + roth + brok) / Math.pow(1 + A.inflation, yr - 2026 + 1);
@@ -1234,7 +1307,7 @@ function mcSimulate(returnSeq, A) {
   return { ok: (trad + roth + brok) >= nominalThreshold, portfolio, brok_dep };
 }
 
-async function runMonteCarlo(A) {
+async function runMonteCarlo(A, mcMode) {
   if (mcRunning) return;
   mcRunning = true;
   const btn = $('mc-run-btn');
@@ -1248,8 +1321,21 @@ async function runMonteCarlo(A) {
 
   await new Promise(r=>setTimeout(r,20));
 
+  try {
   const planYrs = A.life2 - A.ret_age2 + 1;
   const seqLen  = planYrs + 5;
+  const blockSize = 4;  // draw 4-year blocks from CHRONOLOGICAL history to preserve bear/bull runs
+
+  // HIST_PAIRS is in chronological order — blocks must be drawn from it as-is.
+  // Sorting would break the temporal structure needed for block sampling.
+  const chronPool = HIST_PAIRS;  // 99 years in original order
+
+  // Stress test: prepend a historically bad opening sequence (2000-2002 dot-com + 2008)
+  // to EVERY simulation, then continue with normal block sampling for the rest.
+  // This guarantees sequence-of-returns risk at the worst possible time (early retirement),
+  // while the tail of the simulation remains realistic.
+  // Bad opener: indices 74-76 (2000-2002: -23%, -13%, -23%) + index 82 (2008: -39%)
+  const STRESS_OPENER = [74, 75, 76, 82].map(i => chronPool[i]);
 
   // Seeded simple RNG
   let seed = 42;
@@ -1257,13 +1343,34 @@ async function runMonteCarlo(A) {
     seed = (seed * 1664525 + 1013904223) & 0xFFFFFFFF;
     return (seed >>> 0) / 0xFFFFFFFF;
   }
-  function choice() { return SP500_REAL[Math.floor(rand() * SP500_REAL.length)]; }
+
+  function buildSeq(length) {
+    const retSeq = [], inflSeq = [];
+    // Stress mode: force bad years at the start (sequence-of-returns risk)
+    if (mcMode === 'stress') {
+      for (const p of STRESS_OPENER) {
+        if (retSeq.length >= length) break;
+        retSeq.push(p.ret + p.infl);
+        inflSeq.push(p.infl);
+      }
+    }
+    // Fill remainder with 4-year block bootstrap from chronological history
+    while (retSeq.length < length) {
+      const startIdx = Math.floor(rand() * (chronPool.length - blockSize + 1));
+      for (let b = 0; b < blockSize && retSeq.length < length; b++) {
+        const pair = chronPool[startIdx + b];
+        retSeq.push(pair.ret + pair.infl);
+        inflSeq.push(pair.infl);
+      }
+    }
+    return { retSeq, inflSeq };
+  }
 
   const allSims = [];
   const CHUNK = 250;
   for (let s=0; s<N_SIMS; s++) {
-    const seq = Array.from({length:seqLen}, choice);
-    allSims.push(mcSimulate(seq, A));
+    const { retSeq, inflSeq } = buildSeq(seqLen);
+    allSims.push(mcSimulate(retSeq, inflSeq, A));
     if (s % CHUNK === CHUNK-1) {
       const pb = $('mc-progress-bar');
       if (pb) pb.style.width = ((s+1)/N_SIMS*100)+'%';
@@ -1290,14 +1397,23 @@ async function runMonteCarlo(A) {
     });
   }
 
-  mcResults = { success_rate, finals, brok_deps, med_brok, annualBands, planYrs };
+  mcResults = { success_rate, finals, brok_deps, med_brok, annualBands, planYrs, mcMode };
   mcRunning = false;
+  if (btn) btn.disabled = false;
   renderMCResults(A);
+  } catch(err) {
+    mcRunning = false;
+    if (btn) btn.disabled = false;
+    $('mc-container').innerHTML = `<div style="color:red;padding:24px;font-family:monospace">
+      Monte Carlo error: ${err.message}<br><small>${err.stack}</small>
+    </div>`;
+  }
 }
 
 function renderMCResults(A) {
   if (!mcResults) { renderMCPlaceholder(); return; }
-  const {success_rate, finals, brok_deps, med_brok, annualBands} = mcResults;
+  const {success_rate, finals, brok_deps, med_brok, annualBands, mcMode} = mcResults;
+  const modeLabel = mcMode === 'stress' ? ' | ⚠️ Stress test (bad sequence at start)' : ' | Full history';
   const sr = success_rate;
   const srPct = (sr*100).toFixed(1);
   const srCls = sr>=0.90?'green':sr>=0.75?'amber':'red';
@@ -1308,8 +1424,13 @@ function renderMCResults(A) {
   const brok_pct  = brok_deps.length / N_SIMS;
 
   let html = `<div class="page-title">Monte Carlo</div>
-<div class="page-sub">${N_SIMS.toLocaleString()} simulations | Bootstrap from S&P 500 real returns 1926–2024 | Strategy: ${STRAT_NAMES[A.strategy]}</div>
+<div class="page-sub">${N_SIMS.toLocaleString()} sims | 4-yr block bootstrap | Variable inflation${modeLabel} | Strategy: ${STRAT_NAMES[A.strategy]}</div>
 <div id="mc-container">
+<button class="run-btn" id="mc-run-btn" onclick="startMC()" style="margin-bottom:12px">↺ Re-run</button>
+&nbsp;<select id="mc-mode-select" class="s-input" style="width:200px;font-size:11px;vertical-align:middle">
+  <option value="normal" ${mcMode!=='stress'?'selected':''}>Normal — full history</option>
+  <option value="stress" ${mcMode==='stress'?'selected':''}>Stress test — bad sequence at retirement start</option>
+</select>
 <div class="mc-stat-grid">
   <div class="mc-stat ${srCls}">
     <div class="label">Plan Success Rate</div>
@@ -1329,6 +1450,7 @@ function renderMCResults(A) {
   <div class="mc-stat">
     <div class="label">Brokerage Depletes</div>
     <div class="value">${(brok_pct*100).toFixed(0)}%</div>
+    <div class="note">of sims — taxable account hits zero, Roth/IRA carry remaining years</div>
     <div class="note">${med_brok?'Median year: '+med_brok:'Rare event — Roth draws kick in'}</div>
   </div>
 </div>`;
@@ -1355,18 +1477,12 @@ function renderMCResults(A) {
   });
   html += '</div>';
 
-  // Historical returns — one line only (no table)
+  // Historical returns note
   html += `<div class="note-box">
-<strong>Historical S&P 500 Real Returns Used (1926–2024)</strong> — 99 years of real total returns (mean 9.65%, stdev 18.89%) used as the bootstrap sampling pool. Each simulation draws ${A.life2-A.ret_age2+1} returns at random with replacement.<br><br>
-<strong>Method:</strong> Sequence-of-returns risk is the primary failure driver — a severe bear in years 1–10 of retirement can be devastating.
-</div>`;
-
-  // Notes
-  html += `<div class="note-box">
-<strong>Method:</strong> Each simulation draws ${A.life2-A.ret_age2+1} returns at random with replacement from 99 years of historical data.
-All returns are REAL (inflation-adjusted) total returns including dividends.
-Sequence-of-returns risk is the primary failure driver — a severe bear in years 1–10 is devastating.
-<br><br>Run the simulation again after changing assumptions using the button above.
+<strong>Method: 4-year block bootstrap with variable inflation (1926–2024)</strong><br>
+Returns are drawn as 4-year contiguous blocks from the historical record, preserving bear/bull regime clustering. Each sampled year carries its matched historical inflation rate, so high-inflation episodes (1970s) and deflationary shocks (1930s) travel together with their market returns.<br><br>
+<strong>This mode: ${mcMode === 'stress' ? '⚠️ Stress test — 2000–2002 + 2008 crash forced at retirement start, then normal bootstrap' : '✅ Normal — full 99-year chronological history, 4-year blocks'}</strong>
+· Nominal growth used in the deterministic projection: ${(A.growth*100).toFixed(1)}% (real ≈ ${((A.growth-A.inflation)*100).toFixed(1)}%)
 </div>`;
 
   html += `</div>`;
@@ -1387,9 +1503,14 @@ function drawMCChart(bands) {
   const PAD={l:60,r:20,t:20,b:40};
   const pw=W-PAD.l-PAD.r, ph=H-PAD.t-PAD.b;
 
-  const allVals = bands.flatMap(b=>[b.p10,b.p90]);
-  const maxV = Math.max(...allVals);
-  const toX = i => PAD.l + (i/(bands.length-1))*pw;
+  // Trim the final band — all sims end simultaneously there, causing a misleading cliff to 0.
+  // Instead draw to the second-to-last band and mark the final year with a "Plan Horizon" line.
+  const horizonBand = bands[bands.length - 1];
+  const chartBands  = bands.slice(0, -1);
+
+  const allVals = chartBands.flatMap(b=>[b.p10,b.p90]).filter(v=>v>0);
+  const maxV = Math.max(...allVals, 1);
+  const toX = i => PAD.l + (i/(chartBands.length-1))*pw;
   const toY = v => PAD.t + ph - (v/maxV)*ph;
 
   ctx.clearRect(0,0,W,H);
@@ -1405,8 +1526,8 @@ function drawMCChart(bands) {
   }
   // X axis labels
   ctx.fillStyle='#999';ctx.textAlign='center';ctx.font='9px DM Mono,monospace';
-  bands.forEach((b,i)=>{
-    if (i%(Math.ceil(bands.length/8))===0) {
+  chartBands.forEach((b,i)=>{
+    if (i%(Math.ceil(chartBands.length/8))===0) {
       ctx.fillText(b.year, toX(i), H-PAD.b+14);
     }
   });
@@ -1414,8 +1535,8 @@ function drawMCChart(bands) {
   // Bands
   function fillBand(topKey, botKey, color) {
     ctx.beginPath();
-    bands.forEach((b,i)=>{ i===0?ctx.moveTo(toX(i),toY(b[topKey])):ctx.lineTo(toX(i),toY(b[topKey])); });
-    for (let i=bands.length-1;i>=0;i--) ctx.lineTo(toX(i),toY(bands[i][botKey]));
+    chartBands.forEach((b,i)=>{ i===0?ctx.moveTo(toX(i),toY(b[topKey])):ctx.lineTo(toX(i),toY(b[topKey])); });
+    for (let i=chartBands.length-1;i>=0;i--) ctx.lineTo(toX(i),toY(chartBands[i][botKey]));
     ctx.closePath();ctx.fillStyle=color;ctx.fill();
   }
   fillBand('p90','p10','rgba(30,58,100,.08)');
@@ -1424,7 +1545,7 @@ function drawMCChart(bands) {
   // Lines
   function drawLine(key, color, lw=1.5) {
     ctx.beginPath();ctx.strokeStyle=color;ctx.lineWidth=lw;
-    bands.forEach((b,i)=>{ i===0?ctx.moveTo(toX(i),toY(b[key])):ctx.lineTo(toX(i),toY(b[key])); });
+    chartBands.forEach((b,i)=>{ i===0?ctx.moveTo(toX(i),toY(b[key])):ctx.lineTo(toX(i),toY(b[key])); });
     ctx.stroke();
   }
   drawLine('p10','#E24B4A');
@@ -1432,6 +1553,25 @@ function drawMCChart(bands) {
   drawLine('p50','#1F3864',2.5);
   drawLine('p75','#2E75B6',1.5);
   drawLine('p90','#1F6438');
+
+  // Plan Horizon vertical marker at the last year
+  const hx = PAD.l + pw;  // rightmost chart edge = horizon year
+  ctx.save();
+  ctx.strokeStyle='rgba(100,100,100,0.35)';
+  ctx.lineWidth=1.5;
+  ctx.setLineDash([4,3]);
+  ctx.beginPath();ctx.moveTo(hx,PAD.t);ctx.lineTo(hx,PAD.t+ph);ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.restore();
+  // Label
+  ctx.save();
+  ctx.font='bold 8px DM Mono,monospace';
+  ctx.fillStyle='#666';
+  ctx.textAlign='right';
+  ctx.fillText(`Plan horizon ${horizonBand.year}`, hx-4, PAD.t+12);
+  ctx.font='8px DM Mono,monospace';
+  ctx.fillText(`(age ${horizonBand.age1}/${horizonBand.age2})`, hx-4, PAD.t+22);
+  ctx.restore();
 
   // Legend
   const legend=[['p10','#E24B4A','10th'],['p25','#F0A830','25th'],['p50','#1F3864','Median'],['p75','#2E75B6','75th'],['p90','#1F6438','90th']];
@@ -1447,20 +1587,33 @@ function drawMCChart(bands) {
 function renderMCPlaceholder() {
   $('tab-montecarlo').innerHTML = `
 <div class="page-title">Monte Carlo</div>
-<div class="page-sub">10,000 simulations | Bootstrap from S&P 500 real returns 1926–2024</div>
+<div class="page-sub">10,000 simulations | 4-year block bootstrap | Variable historical inflation 1926–2024</div>
 <div id="mc-container">
   <div style="background:#fff;border-radius:8px;padding:32px;text-align:center;border:1px solid var(--border)">
     <div style="font-size:32px;margin-bottom:12px">📊</div>
     <div style="font-family:var(--font-serif);font-size:16px;color:var(--navy);margin-bottom:8px">Ready to simulate</div>
-    <div style="font-size:11px;color:var(--muted);font-family:var(--font-mono);margin-bottom:18px">Runs 10,000 bootstrap simulations using 99 years of S&P 500 real return data.<br>Updates when you change assumptions.</div>
-    <button class="run-btn" id="mc-run-btn" onclick="startMC()">Run Monte Carlo (5,000 sims)</button>
+    <div style="font-size:11px;color:var(--muted);font-family:var(--font-mono);margin-bottom:18px;line-height:1.7">
+      Samples 4-year blocks from 99 years of historical data — preserving bear/bull clusters.<br>
+      Each simulation uses the matching historical inflation for the sampled years.<br>
+      <strong>Stress test:</strong> forces the 4 worst years from 2000–2002 and 2008 at the very start of every simulation (sequence-of-returns risk), then continues with normal block bootstrap.
+    </div>
+    <div style="display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:16px">
+      <label style="font-size:11px;font-family:var(--font-mono);color:var(--text)">Market scenario:</label>
+      <select id="mc-mode-select" class="s-input" style="width:180px;font-size:11px">
+        <option value="normal">Normal — full history</option>
+        <option value="stress">Stress test — bad sequence at retirement start</option>
+      </select>
+    </div>
+    <button class="run-btn" id="mc-run-btn" onclick="startMC()">▶ Run Monte Carlo (10,000 sims)</button>
   </div>
 </div>`;
 }
 
 function startMC() {
   const A = getA();
-  runMonteCarlo(A);
+  const modeEl = document.getElementById('mc-mode-select');
+  const mode = modeEl ? modeEl.value : 'normal';
+  runMonteCarlo(A, mode);
 }
 
 // ════════════════════════════════════════════════════════════════════
@@ -1544,6 +1697,7 @@ if (didRestore) {
 }
 
 // Initial render
+updateRealReturnDisplay();
 updateAll();
 
 // ════════════════════════════════════════════════════════════════════
@@ -1564,13 +1718,13 @@ function renderTaxSnap(A, snapYrOverride) {
   const snapIdx = SNAP_YR - A.ret_year;   // index into projection (0-based)
 
   // Run projection up to snapIdx to get correct balances for that year
-  let trad = A.trad, roth = A.roth, brok = A.brok;
+  let trad1 = A.trad1, trad2 = A.trad2||0, roth = A.roth, brok = A.brok;
   let yrData = null;
   let snap_first_conv_yr = null;
   for (let i = 0; i <= snapIdx; i++) {
-    yrData = computeYear(i, A, trad, roth, brok, null, snap_first_conv_yr);
+    yrData = computeYear(i, A, trad1, trad2, roth, brok, null, snap_first_conv_yr);
     if (yrData.conv > 0 && snap_first_conv_yr === null) snap_first_conv_yr = yrData.yr;
-    trad = yrData.trad; roth = yrData.roth; brok = yrData.brok;
+    trad1 = yrData.trad1; trad2 = yrData.trad2; roth = yrData.roth; brok = yrData.brok;
   }
   const yr1 = yrData;  // the computed row for SNAP_YR
 
@@ -2120,7 +2274,7 @@ function renderReadMe(A) {
         </div>
         <div class="rm-card">
           <h4>Monte Carlo Tab</h4>
-          <p>Runs 10,000 simulations drawing from the historical S&P 500 real-return distribution (1926–2024). Shows median, 10th, and 90th percentile outcomes and the probability of not outliving your money. Run this after locking in a strategy.</p>
+          <p>Runs 10,000 simulations using 4-year block sampling from 99 years of S&P 500 history — preserving bear/bull clustering. Each sampled year carries its matched historical inflation rate. A <strong>stress test mode</strong> forces the 2000–2002 and 2008 crashes at the very start of retirement (worst sequence-of-returns risk), then continues with normal bootstrap. Shows median, P10, P90 outcomes and plan success rate.</p>
         </div>
       </div>
 
@@ -2163,8 +2317,8 @@ function renderReadMe(A) {
           <p>The model does not enforce the 5-year seasoning period on conversion funds. If you plan to draw Roth funds early in retirement, ensure conversions were made at least 5 years prior or that you have sufficient basis.</p>
         </div>
         <div class="rm-card amber">
-          <h4>Single growth rate</h4>
-          <p>All three accounts (traditional, Roth, brokerage) grow at the same real rate. In practice, asset allocation may differ. The brokerage account also generates annual taxable yield income on top of the growth rate.</p>
+          <h4>Single growth rate (nominal)</h4>
+          <p>All three accounts grow at the same <strong>nominal</strong> rate (your input). RMDs are computed on nominal balances — correct, because RMD tables use current dollar values, not inflation-adjusted values. The sidebar shows the implied real return (nominal minus inflation) for reference.</p>
         </div>
         <div class="rm-card amber">
           <h4>RMD approximation</h4>
@@ -2179,7 +2333,7 @@ function renderReadMe(A) {
 
   <!-- VERSION -->
   <div style="text-align:center;font-size:10px;color:var(--muted);font-family:var(--font-mono);padding-bottom:8px">
-    Roth Conversion Planner v3.8 · OBBB senior deduction · 2026 tax year base
+    Roth Conversion Planner v4.0 · OBBB senior deduction · 2026 tax year base
   </div>
 
 </div>`;
